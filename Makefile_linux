@@ -1,0 +1,31 @@
+# merlinbitte Linux makefile
+SRCDIR=./src
+INCDIR=include
+CFLAGS=$(FLAGS) -I$(INCDIR) -I$(SRCDIR)
+LDFLAGS=-ltcodxx_debug -lm 
+CC=gcc
+CPP=g++ -std=c++11 -stdlib=libc++ 
+PROGNAME=merlinbitte
+CPP_FILES := $(wildcard src/*.cpp)
+OBJ_FILES := $(patsubst src/%.cpp,obj/%.o,$(CPP_FILES))
+.SUFFIXES: .o .h .c .hpp .cpp
+
+obj/%.o : $(SRCDIR)/%.cpp
+  $(CPP) $(CFLAGS) -g -o $@ -c $< 
+
+obj/%.o : $(SRCDIR)/%.m
+  $(CC) $(CFLAGS) -g -o $@ -c $< 
+
+all : debug
+
+debug : $(PROGNAME)
+
+$(TEMP) :
+  \mkdir -p $@
+
+$(PROGNAME) : $(TEMP) $(C_OBJS_DEBUG)
+  $(CPP) $(C_OBJS_DEBUG) $(CFLAGS) -o $@ $(LDFLAGS) $(CFLAGS) -Wl,-rpath,.
+
+clean :
+  \rm -f $(PROGNAME) $(C_OBJS_DEBUG)
+
