@@ -97,7 +97,7 @@ void initZones() {
 	for (auto id : zoneIds) {
 		auto z = new Zone(id,40,30);
 		z->load(string("zones/") + string(id) + string(".txt"));
-		zones.emplace(id, z);
+		zones.insert(make_pair(id, z));
 	}
 }
 
