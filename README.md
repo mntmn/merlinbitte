@@ -11,7 +11,7 @@ Building
 To clone libtcod, you need [mercurial]. Clone libtcod into a directory that is parallel to the
 merlinbitte directory:
 
-    hg clone ssh://hg@bitbucket.org/jice/libtcod
+    hg clone https://bitbucket.org/jice/libtcod
 
 For OSX 10.8, I included a custom makefile for libtcod 1.5.2: libtcod_makefile_osx. 
     
