@@ -25,7 +25,7 @@ For OSX 10.8, I included a custom makefile for libtcod 1.5.2: libtcod_makefile_o
     cd ../merlinbitte
     make -f Makefile_osx
 
-On Linux, you need at least GCC 4.7. This was tested with Debian 7.0 testing.
+On Linux, you need at least GCC 4.7. This was tested with Debian 7.0 testing and on Arch Linux.
 
     sudo apt-get install libsdl-dev  # (debian linux)
     sudo pacman install sdl          # (arch linux)
