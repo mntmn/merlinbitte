@@ -8,7 +8,7 @@ It is based on [libtcod] and written in C++11.
 Building
 --------
 
-To clone libtcod, you need [mercurial] (hg). Clone libtcod into a directory that is parallel to the
+To clone libtcod, you need [mercurial]. Clone libtcod into a directory that is parallel to the
 merlinbitte directory:
 
     hg clone ssh://hg@bitbucket.org/jice/libtcod
@@ -42,3 +42,4 @@ License
 MIT
 
   [libtcod]: http://doryen.eptalys.net/libtcod/
+  [mercurial]: http://mercurial.selenic.com/
