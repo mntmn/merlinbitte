@@ -5,18 +5,31 @@ using namespace std;
 
 map<char,Tile> tileDefs = {
   {' ', Tile{' ', 0, "asphalt", TCODColor::black, TCODColor::black}},
+  {'w', Tile{' ', 0, "sidewalk", TCODColor::darkestGrey, TCODColor::darkestGrey}},
+
   {'|', Tile{'|', TILE_BLOCKS, "wall", TCODColor::lightGrey, TCODColor::darkestGrey}},
+  {'.', Tile{'.', TILE_BLOCKS, "corner", TCODColor::lightGrey, TCODColor::darkestGrey}},
+
   {'=', Tile{'=', TILE_BLOCKS, "wall", TCODColor::lightGrey, TCODColor::darkestGrey}},
-  {'+', Tile{'=', TILE_BLOCKS, "fence", TCODColor::lightGreen, TCODColor::darkestGrey}},
-  {'-', Tile{'-', 0, "wooden flooring", TCODColor::lightGrey, TCODColor::darkestGrey}},
+  {'+', Tile{'+', TILE_BLOCKS, "fence", TCODColor::lightGreen, TCODColor::darkestGrey}},
+  
+  {'_', Tile{'-', 0, "stairs", TCODColor::darkGrey, TCODColor::black}},
+  {'>', Tile{'>', 0, "stairs leading up", TCODColor::yellow, TCODColor::black}},
+  {'<', Tile{'<', 0, "stairs leading down", TCODColor::yellow, TCODColor::black}},
+
   {'T', Tile{'T', 0, "table", TCODColor::darkSepia, TCODColor::darkestSepia}},
   {'#', Tile{'#', 0, "couch", TCODColor::black, TCODColor::darkSepia}},
+  
   {'o', Tile{'o', 0, "toilet", TCODColor::white, TCODColor::darkGrey}},
   {'s', Tile{'s', 0, "sink", TCODColor::white, TCODColor::darkGrey}},
+  
   {'[', Tile{'[', TILE_LOCKED, "locked door", TCODColor::white, TCODColor::black}},
   {']', Tile{']', TILE_CLOSED, "closed door", TCODColor::white, TCODColor::black}},
   {'/', Tile{'/', 0, "open door", TCODColor::white, TCODColor::black}},
+  
+  {'-', Tile{'-', 0, "wooden flooring", TCODColor::lightGrey, TCODColor::darkestGrey}},
   {'0', Tile{' ', 0, "marble flooring", TCODColor::darkGrey, TCODColor::darkGrey}},
+
   {'*', Tile{'*', TILE_BLOCKS, "tree", TCODColor::darkGreen, TCODColor::darkGrey}}
 };
 
@@ -48,7 +61,7 @@ Zone::Zone(string title, int w, int h) {
   this->tiles = new Tile[w*h];
 
   for (int i=0; i<w*h; i++) {
-    tiles[i] = Tile{0,TILE_BLOCKS};
+    tiles[i] = Tile{' ', TILE_BLOCKS, "void", TCODColor::black, TCODColor::black};
   }
 }
 
@@ -98,10 +111,12 @@ void Zone::load(string filename) {
         int x = 0;
         for (char c : line) {
           if (x<width && y<height) {
-            assert(tileDefs.count(c)==1);
-
-            Tile t = tileDefs.at(c);
-            tiles[y*width + x] = t;
+            if (tileDefs.count(c)==1) {
+              Tile t = tileDefs.at(c);
+              tiles[y*width + x] = t;
+            } else {
+              printf("Warning: no tileDef for [%c]!\n",c);
+            }
           }
           x++;
         }

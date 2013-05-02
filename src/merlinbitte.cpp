@@ -19,7 +19,7 @@ using namespace std;
 TCODConsole tc(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 map<string, Zone*> zones;
-Player hero{"mntmn", 10, 10};
+Player hero{"mntmn", 17, 15};
 vector<Item> inventory;
 Zone* currentZone;
 int heroState = HSTATE_MOVE;
@@ -29,25 +29,27 @@ void renderZone(Zone* zone) {
 
 	tc.clear();
 	tc.setDefaultForeground(TCODColor::white);
+	int yOffset = 2;
 
 	// tiles
-	for (int y = 0; y < SCREEN_HEIGHT; y++) {
+	for (int y = 0; y < SCREEN_HEIGHT-yOffset; y++) {
 		for (int x = 0; x < SCREEN_WIDTH; x++) {
 			Tile t = zone->tileAt(x, y);
-
-			tc.putCharEx(x, y, t.consoleChar, t.fg, t.bg);
+			if (t.consoleChar>0) {
+				tc.putCharEx(x, y + yOffset, t.consoleChar, t.fg, t.bg);
+			}
 		}
 	}
 
 	// items
 	for (ZoneItem zi : zone->getZoneItems()) {
 		Item item = zi.item;
-		tc.putCharEx(zi.x, zi.y, item.consoleChar, item.fg, item.bg);
+		tc.putCharEx(zi.x, zi.y+yOffset, item.consoleChar, item.fg, item.bg);
 	}
 
 	tc.setDefaultForeground(TCODColor::white);
 
-	tc.putChar(hero.x,hero.y,'@',TCOD_BKGND_NONE);
+	tc.putChar(hero.x,hero.y+yOffset,'@',TCOD_BKGND_NONE);
 
 	auto playerTile = zone->tileAt(hero.x,hero.y);
 
@@ -93,9 +95,9 @@ void initTCod() {
 }
 
 void initZones() {
-	auto zoneIds={"apartment","backyard"};
+	auto zoneIds={"apartment","apt-stairs","backyard","torstrasse"};
 	for (auto id : zoneIds) {
-		auto z = new Zone(id,40,30);
+		auto z = new Zone(id,40,40);
 		z->load(string("zones/") + string(id) + string(".txt"));
 		zones.insert(make_pair(id, z));
 	}

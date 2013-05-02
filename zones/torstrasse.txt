@@ -1,0 +1,46 @@
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+[wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|w##ww                wwwww|
+|ww#ww                wwwww+
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                *wwww|
+|wwwww               ***www|
+|wwwww                *wwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww 
+|wwwww                wwwww 
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+|wwwww                wwwww|
+!items
+35,16,1 euro coin
+2,8,cigarette butt
+!teleports
+27,21,backyard,1,27
+27,22,backyard,1,28
