@@ -14,16 +14,33 @@ merlinbitte directory:
     hg clone https://bitbucket.org/jice/libtcod
     git clone git://github.com/mntmn/merlinbitte.git
 
+OSX
+---
+
 For OSX 10.8, I included a custom makefile for libtcod 1.5.2: libtcod_makefile_osx. 
     
     brew install sdl
     
     cp ./merlinbitte/libtcod_makefile_osx ./libtcod/
     cd libtcod
+
+Now, comment out line 645 in src/sys_sdl_c.c, the one saying
+    
+    CustomApplicationMain();
+
+So it says
+
+    //CustomApplicationMain();
+
+Then, compile libtcod:
+
     make -f libtcod_makefile_osx
     
     cd ../merlinbitte
     make -f Makefile_osx
+
+Linux
+-----
 
 On Linux, you need at least GCC 4.7. This was tested with Debian 7.0 testing and on Arch Linux.
 
