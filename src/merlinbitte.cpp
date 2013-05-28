@@ -7,7 +7,7 @@
 
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 60
-#define SPAWN_ZONE "apartment"
+#define SPAWN_ZONE "Sector 10/9"
 #define MAX_CONSOLE_MSGS 10
 
 #define HSTATE_MOVE 0
@@ -95,12 +95,62 @@ void initTCod() {
 }
 
 void initZones() {
+
+	// hard-coded special zones
 	auto zoneIds={"apartment","apt-stairs","backyard","torstrasse"};
 	for (auto id : zoneIds) {
 		auto z = new Zone(id,40,40);
 		z->load(string("zones/") + string(id) + string(".txt"));
 		zones.insert(make_pair(id, z));
 	}
+
+	// dynamic generated zones
+
+  ifstream input("data/mapseed.txt");
+  printf("[initZones] Loading mapseed.txt\n");
+
+  int y=0;
+  int x=0;
+  int w=40;
+  int h=40;
+  for (string line; getline(input, line);) {
+  	for (int x=0; x<w; x++) {
+  		string zid = "Sector " + to_string(x) + "/" + to_string(y);
+  		auto z = new Zone(zid,w,h);
+  		z->generate(line[x]);
+
+  		// add north, south teleports
+			for (int tx=0; tx<w; tx++) {
+				if (y>0) {
+  				string targetId = "Sector " + to_string(x) + "/" + to_string(y-1);
+		  		Teleport* t = new Teleport{tx,0,targetId,tx,h-2};
+					z->addTeleport(t);
+				}
+				if (y<20) {
+  				string targetId = "Sector " + to_string(x) + "/" + to_string(y+1);
+		  		Teleport* t = new Teleport{tx,h-1,targetId,tx,1};
+					z->addTeleport(t);
+				}
+			}
+
+  		// add east, west teleports
+			for (int ty=0; ty<h; ty++) {
+				if (x>0) {
+  				string targetId = "Sector " + to_string(x-1) + "/" + to_string(y);
+		  		Teleport* t = new Teleport{0,ty,targetId,w-2,ty};
+					z->addTeleport(t);
+				}
+				if (x<20) {
+  				string targetId = "Sector " + to_string(x+1) + "/" + to_string(y);
+		  		Teleport* t = new Teleport{w-2,ty,targetId,1,ty};
+					z->addTeleport(t);
+				}
+			}
+
+  		zones.insert(make_pair(zid,z));
+  	}
+  	y++;
+  }
 }
 
 Zone* getZone(string zoneName) {

@@ -1,4 +1,3 @@
-
 #include "Zone.h"
 
 using namespace std;
@@ -37,7 +36,16 @@ map<string,Item> itemDefs = {
   {"apartment keys", Item{',', 0, "apartment keys", 10, TCODColor::white, TCODColor::black}},
   {"1 euro coin", Item{'.', 0, "1 euro coin", 5, TCODColor::yellow, TCODColor::black}},
   {"cigarette butt", Item{'.', 0, "cigarette butt", 2, TCODColor::lightSepia, TCODColor::black}},
-  {"empty blister of ibuprofen", Item{',', 0, "empty blister of ibuprofen", 2, TCODColor::lightGrey, TCODColor::black}}
+  {"empty blister of ibuprofen", Item{',', 0, "empty blister of ibuprofen", 2, TCODColor::lightGrey, TCODColor::black}},
+  {"newspaper", Item{'n', 0, "newspaper", 2, TCODColor::lightGrey, TCODColor::black}},
+  {"ballpen", Item{'.', 0, "ballpen", 2, TCODColor::lightGreen, TCODColor::black}},
+  {"cup", Item{'u', 0, "cup", 2, TCODColor::lightGrey, TCODColor::black}},
+  {"plate", Item{'_', 0, "plate", 2, TCODColor::white, TCODColor::black}},
+  {"book", Item{'_', 0, "book", 2, TCODColor::darkGrey, TCODColor::black}},
+  {"ibuprofen", Item{'.', 0, "ibuprofen", 2, TCODColor::white, TCODColor::black}},
+  {"quetiapine", Item{'.', 0, "quetiapine", 2, TCODColor::orange, TCODColor::black}},
+  {"jeans", Item{'n', 0, "jeans", 2, TCODColor::blue, TCODColor::black}},
+  {"t-shirt", Item{'T', 0, "t-shirt", 2, TCODColor::white, TCODColor::black}},
 };
 
 Tile Tile::unlock() {
@@ -151,6 +159,135 @@ void Zone::load(string filename) {
         teleports.push_back(t);
       }
     }
+  }
+}
+
+void Zone::addTeleport(Teleport* t) {
+  teleports.push_back(t);
+}
+
+void Zone::generateHouses(int ox, int oy, int w, int h, int mind, int maxdx, int maxdy) {
+  int ydiv = rand()%maxdy + mind;
+  int pad = 2;
+  
+  for (int y=0; y<ydiv; y++) {
+    int xdiv = rand()%maxdx + mind;
+    for (int x=0; x<xdiv; x++) {
+
+      int x1 = ox + ((w-1)/xdiv)*x+pad + rand()%2;
+      int y1 = oy + ((h-1)/ydiv)*y+pad + rand()%2;
+      int x2 = x1+(w-2)/xdiv-2*pad - rand()%2;
+      int y2 = y1+(h-2)/ydiv-2*pad - rand()%2;
+
+      if (rand()%4) {
+
+        // fill with junk
+
+        int floorType = rand()%2;
+        for (int hy=y1+1; hy<y2; hy++) {
+          for (int hx=x1+1; hx<x2; hx++) {
+            if (floorType) {
+              mutate(hx,hy,tileDefs.at('0')); // marble
+            } else {
+              mutate(hx,hy,tileDefs.at('-')); // wood
+            }
+
+            string items[] = {
+              "ballpen",
+              "cup",
+              "plate",
+              "book",
+              "ibuprofen", 
+              "quetiapine",
+              "jeans",
+              "t-shirt"
+            };
+
+            const int itemCount = 8;
+            const int itemR = rand()%(itemCount+80);
+            if (itemR<itemCount) {
+              ZoneItem zi = ZoneItem{hx,hy,itemDefs.at(items[itemR])};
+              zoneItems.push_back(zi);
+            }
+          }
+        }
+
+        // house rect
+        for (int hx=x1; hx<=x2; hx++) {
+          mutate(hx,y1,tileDefs.at('='));
+          mutate(hx,y2,tileDefs.at('='));
+        }
+
+        for (int hy=y1; hy<=y2; hy++) {
+          mutate(x1,hy,tileDefs.at('|'));
+          mutate(x2,hy,tileDefs.at('|'));
+        }
+
+        // corners
+        mutate(x1,y1,tileDefs.at('.'));
+        mutate(x2,y1,tileDefs.at('.'));
+        mutate(x1,y2,tileDefs.at('.'));
+        mutate(x2,y2,tileDefs.at('.'));
+
+        // door
+        mutate((x1+x2)/2,y2,tileDefs.at(']'));
+      }
+
+    }
+  }
+}
+
+void Zone::generate(char zoneType) {
+
+  printf("[Zone] generating zone of type %c\n",zoneType);
+
+  for (int y=0; y<height; y++) {
+    for (int x=0; x<width; x++) {
+      mutate(x,y,tileDefs.at('w'));
+    }
+  }
+
+  int roadWidth=8;
+
+  if (zoneType=='|') {
+    generateHouses(0,0,width/2-roadWidth/2,height,1,1,2);
+    generateHouses(width/2+roadWidth/2,0,width/2-roadWidth/2,height,1,1,2);
+  }
+
+  if (zoneType=='-') {
+    generateHouses(0,0,width,height/2-roadWidth/2,1,2,1);
+    generateHouses(0,height/2+roadWidth/2,width,height/2-roadWidth/2,1,2,1);
+  }
+
+  if (zoneType=='+') {
+    generateHouses(0,0,width/2-roadWidth/2,height/2-roadWidth/2,1,1,1);
+    generateHouses(width/2+roadWidth/2,0,width/2-roadWidth/2,height/2-roadWidth/2,1,1,1);
+    generateHouses(0,height/2+roadWidth/2,width/2-roadWidth/2,height/2-roadWidth/2,1,1,1);
+    generateHouses(width/2+roadWidth/2,height/2+roadWidth/2,width/2-roadWidth/2,height/2-roadWidth/2,1,1,1);
+  }
+
+
+  if (zoneType=='|' || zoneType=='+') {
+    for (int y=0; y<height; y++) {
+      for (int x=width/2-roadWidth/2; x<width/2+roadWidth/2; x++) {
+        mutate(x,y,tileDefs.at(' '));
+      }
+    }
+  }
+
+
+  if (zoneType=='-' || zoneType=='+') {
+
+    for (int x=0; x<width; x++) {
+      for (int y=height/2-roadWidth/2; y<height/2+roadWidth/2; y++) {
+        mutate(x,y,tileDefs.at(' '));
+      }
+    }
+  }
+
+  if (zoneType=='R') {
+    // generate residential houses
+    generateHouses(0,0,width,height,1,3,3);
   }
 }
 

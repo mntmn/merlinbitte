@@ -68,13 +68,17 @@ public:
   Zone(string title, int w, int h);
   ~Zone();
 
+  void generate(char zoneType);
   void mutate(int x, int y, Tile t);
   void load(string filename);
   Tile tileAt(int x, int y);
+  void addTeleport(Teleport* t);
   Teleport* teleportAt(int x, int y);
   vector<Item> itemsAt(int x, int y);
   vector<ZoneItem> getZoneItems();
   void eraseItem(int x, int y, string itemId);
+
+  void generateHouses(int ox, int oy, int w, int h, int mind, int maxdx, int maxdy);
 };
 
 #endif
