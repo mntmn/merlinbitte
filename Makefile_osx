@@ -2,7 +2,7 @@
 SRCDIR=./src
 INCDIR=include
 TCODINCLUDE=../libtcod/include
-CFLAGS=$(FLAGS) -I$(INCDIR) -I$(TCODINCLUDE) -I$(SRCDIR)
+CFLAGS=$(FLAGS) -I$(INCDIR) -I$(TCODINCLUDE) -I$(SRCDIR) -ggdb
 LDFLAGS= -framework Cocoa -lSDL -L./ -ltcodxx_debug -lm 
 CC=gcc
 CPP=clang++ -std=c++11 -stdlib=libc++ 

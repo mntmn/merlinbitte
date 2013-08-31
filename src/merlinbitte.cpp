@@ -2,8 +2,8 @@
 #include <map>
 #include <vector>
 #include "libtcod.hpp"
-#include "Player.h"
 #include "Zone.h"
+#include "Critter.h"
 
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 60
@@ -13,98 +13,179 @@
 #define HSTATE_MOVE 0
 #define HSTATE_USE_SELECT 1
 #define HSTATE_USE_DIRECTION 2
+#define HSTATE_MANIPULATE_DIRECTION 3
+#define HSTATE_WIELD_SELECT 4
 
 using namespace std;
 
 TCODConsole tc(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 map<string, Zone*> zones;
-Player hero{"mntmn", 17, 15};
-vector<Item> inventory;
 Zone* currentZone;
+
+Critter hero{NULL, 17, 15};
+
+vector<Item> inventory;
 int heroState = HSTATE_MOVE;
 int selectedItemId = 0;
+int yOffset = 2;
+
+int turn = 0;
+
+vector<Critter*> critters;
+
+vector<string> moveCritters(Zone* playerZone) {
+  vector<string> responses;
+
+  for (Critter* c : critters) {
+
+    if (c->zone == playerZone) {
+
+      auto path = new TCODPath(playerZone->getTcodMap(), 1.0f); 
+      if (path->compute(c->x, c->y, hero.x, hero.y)) {
+        if (!path->isEmpty()) {
+          int nextX, nextY;
+          path->walk(&nextX, &nextY, true);
+
+          if (nextX == hero.x && nextY == hero.y) {
+            // attack hero
+
+            int dmg = hero.attackBy(c);
+
+            responses.push_back(string("The ") + c->name + string(" claws at you causing ") + to_string(dmg) + string(" damage."));
+          } else {
+            c->x = nextX;
+            c->y = nextY;
+          }
+        }
+      }
+    }
+  }
+
+  return responses;
+}
+
+void renderCritters(Zone* zone) {
+  for (Critter* c : critters) {
+    if (c->zone == zone) {
+      tc.putCharEx(c->x, c->y + yOffset, c->consoleChar, c->fg, c->bg);
+    }
+  }
+}
 
 void renderZone(Zone* zone) {
+  tc.clear();
+  tc.setDefaultForeground(TCODColor::white);
 
-	tc.clear();
-	tc.setDefaultForeground(TCODColor::white);
-	int yOffset = 2;
+  // tiles
+  for (int y = 0; y < SCREEN_HEIGHT-yOffset; y++) {
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+      Tile t = zone->tileAt(x, y);
+      if (t.consoleChar>0) {
+        tc.putCharEx(x, y + yOffset, t.consoleChar, t.fg, t.bg);
+      }
+    }
+  }
 
-	// tiles
-	for (int y = 0; y < SCREEN_HEIGHT-yOffset; y++) {
-		for (int x = 0; x < SCREEN_WIDTH; x++) {
-			Tile t = zone->tileAt(x, y);
-			if (t.consoleChar>0) {
-				tc.putCharEx(x, y + yOffset, t.consoleChar, t.fg, t.bg);
-			}
-		}
-	}
+  // items
+  for (ZoneItem zi : zone->getZoneItems()) {
+    Item item = zi.item;
+    tc.putCharEx(zi.x, zi.y+yOffset, item.consoleChar, item.fg, item.bg);
+  }
 
-	// items
-	for (ZoneItem zi : zone->getZoneItems()) {
-		Item item = zi.item;
-		tc.putCharEx(zi.x, zi.y+yOffset, item.consoleChar, item.fg, item.bg);
-	}
+  tc.setDefaultForeground(TCODColor::white);
 
-	tc.setDefaultForeground(TCODColor::white);
+  tc.putChar(hero.x,hero.y+yOffset,'@',TCOD_BKGND_NONE);
 
-	tc.putChar(hero.x,hero.y+yOffset,'@',TCOD_BKGND_NONE);
+  auto playerTile = zone->tileAt(hero.x,hero.y);
 
-	auto playerTile = zone->tileAt(hero.x,hero.y);
+  tc.print(1,1,zone->title.c_str());
+  tc.print(20,1,playerTile.name.c_str());
 
-	tc.print(1,1,zone->title.c_str());
-	tc.print(20,1,playerTile.name.c_str());
+  renderCritters(zone);
 }
 
 void renderMessages(vector<string>* messages) {
-	tc.setDefaultForeground(TCODColor::white);
+  tc.setDefaultForeground(TCODColor::white);
 
-	int y = SCREEN_HEIGHT-MAX_CONSOLE_MSGS-1;
-	for (string m : *messages) {
-		tc.print(1,y++,m.c_str());
-	}
+  int y = SCREEN_HEIGHT-MAX_CONSOLE_MSGS-1;
+  for (string m : *messages) {
+    tc.print(1,y++,m.c_str());
+  }
 }
 
 void renderInventory() {
-	tc.setDefaultForeground(TCODColor::white);
+  tc.setDefaultForeground(TCODColor::white);
 
-	tc.print(SCREEN_WIDTH-20,1,"Inventory");
-	int y = 2;
-	int idx = 0;
-	for (Item item : inventory) {
-		tc.print(SCREEN_WIDTH-20,y++, (to_string(idx++)+": "+item.name).c_str());
-	}
+  tc.print(SCREEN_WIDTH-20,1,"Inventory");
+  int y = 2;
+  int idx = 0;
+  for (Item item : inventory) {
+    string mod = "";
+    if (hero.weapon == &item) {
+      mod += "W ";
+    } else {
+      for (Item* c : hero.clothes) {
+        if (c == &item) {
+          mod += "w ";
+        }
+      }
+    }
+    tc.print(SCREEN_WIDTH-20,y++, (to_string(idx++)+": "+mod+item.name).c_str());
+  }
+}
+
+void renderStats() {
+  tc.setDefaultForeground(TCODColor::white);
+
+  int x = SCREEN_WIDTH-35;
+
+  tc.print(x,1,"Stats");
+
+  int minutesTotal = turn/5;
+  int hoursTotal = (minutesTotal/60);
+  int hours = hoursTotal%24;
+  int day = hoursTotal/24 + 1;
+
+  tc.print(x,3,(string("Day ") + to_string(day) + " " + to_string(hoursTotal%24) + ":" + to_string(minutesTotal%60)).c_str());
+  tc.print(x,4,(string("Health: ") + to_string(hero.health)).c_str());
+  tc.print(x,5,(string("INT: ") + to_string(hero.intelligence)).c_str());
+  tc.print(x,6,(string("STR: ") + to_string(hero.strength)).c_str());
+  tc.print(x,7,(string("AGL: ") + to_string(hero.agility)).c_str());
+  tc.print(x,8,(string("WPR: ") + to_string(hero.willpower)).c_str());
+
+  tc.print(x,10,(string("ARM: ") + to_string(hero.armorValue())).c_str());
+  tc.print(x,11,(string("DMG: ") + to_string(hero.damageValue())).c_str());
 }
 
 void initTCod() {
-	auto fullscreen = false;
+  auto fullscreen = false;
 
-	const char *font="data/fonts/consolas12x12_gs_tc.png";
+  const char *font="data/fonts/consolas12x12_gs_tc.png";
 
-	int fontFlags=TCOD_FONT_TYPE_GREYSCALE|TCOD_FONT_LAYOUT_TCOD, fontNewFlags=0;
+  int fontFlags=TCOD_FONT_TYPE_GREYSCALE|TCOD_FONT_LAYOUT_TCOD, fontNewFlags=0;
 
-	TCODConsole::setCustomFont(font,fontFlags,0,0);
+  TCODConsole::setCustomFont(font,fontFlags,0,0);
 
-	TCODConsole::initRoot(SCREEN_WIDTH,SCREEN_HEIGHT,"merlin bitte",fullscreen,TCOD_RENDERER_SDL);
+  TCODConsole::initRoot(SCREEN_WIDTH,SCREEN_HEIGHT,"merlin bitte",fullscreen,TCOD_RENDERER_SDL);
 
-	TCODConsole::root->setDefaultForeground(TCODColor::white);
-	TCODConsole::root->setDefaultBackground(TCODColor::lightBlue);
+  TCODConsole::root->setDefaultForeground(TCODColor::white);
+  TCODConsole::root->setDefaultBackground(TCODColor::lightBlue);
 
-	TCODSystem::setFps(30);
+  TCODSystem::setFps(30);
 }
 
 void initZones() {
 
-	// hard-coded special zones
-	auto zoneIds={"apartment","apt-stairs","backyard","torstrasse"};
-	for (auto id : zoneIds) {
-		auto z = new Zone(id,40,40);
-		z->load(string("zones/") + string(id) + string(".txt"));
-		zones.insert(make_pair(id, z));
-	}
+  // hard-coded special zones
+  auto zoneIds={"apartment","apt-stairs","backyard","torstrasse"};
+  for (auto id : zoneIds) {
+    auto z = new Zone(id,40,40);
+    z->load(string("zones/") + string(id) + string(".txt"));
+    zones.insert(make_pair(id, z));
+  }
 
-	// dynamic generated zones
+  // dynamic generated zones
 
   ifstream input("data/mapseed.txt");
   printf("[initZones] Loading mapseed.txt\n");
@@ -113,204 +194,360 @@ void initZones() {
   int x=0;
   int w=40;
   int h=40;
+  int lc=0;
   for (string line; getline(input, line);) {
-  	for (int x=0; x<w; x++) {
-  		string zid = "Sector " + to_string(x) + "/" + to_string(y);
-  		auto z = new Zone(zid,w,h);
-  		z->generate(line[x]);
+    printf("Read line: %d\n",lc++);
+    for (int x=0; x<w; x++) {
+      string zid = "Sector " + to_string(x) + "/" + to_string(y);
+      auto z = new Zone(zid,w,h);
+      z->generate(line[x]);
 
-  		// add north, south teleports
-			for (int tx=0; tx<w; tx++) {
-				if (y>0) {
-  				string targetId = "Sector " + to_string(x) + "/" + to_string(y-1);
-		  		Teleport* t = new Teleport{tx,0,targetId,tx,h-2};
-					z->addTeleport(t);
-				}
-				if (y<20) {
-  				string targetId = "Sector " + to_string(x) + "/" + to_string(y+1);
-		  		Teleport* t = new Teleport{tx,h-1,targetId,tx,1};
-					z->addTeleport(t);
-				}
-			}
+      // add north, south teleports
+      for (int tx=0; tx<w; tx++) {
+        if (y>0) {
+          string targetId = "Sector " + to_string(x) + "/" + to_string(y-1);
+          Teleport* t = new Teleport{tx,0,targetId,tx,h-2};
+          z->addTeleport(t);
+        }
+        if (y<20) {
+          string targetId = "Sector " + to_string(x) + "/" + to_string(y+1);
+          Teleport* t = new Teleport{tx,h-1,targetId,tx,1};
+          z->addTeleport(t);
+        }
+      }
 
-  		// add east, west teleports
-			for (int ty=0; ty<h; ty++) {
-				if (x>0) {
-  				string targetId = "Sector " + to_string(x-1) + "/" + to_string(y);
-		  		Teleport* t = new Teleport{0,ty,targetId,w-2,ty};
-					z->addTeleport(t);
-				}
-				if (x<20) {
-  				string targetId = "Sector " + to_string(x+1) + "/" + to_string(y);
-		  		Teleport* t = new Teleport{w-2,ty,targetId,1,ty};
-					z->addTeleport(t);
-				}
-			}
+      // add east, west teleports
+      for (int ty=0; ty<h; ty++) {
+        if (x>0) {
+          string targetId = "Sector " + to_string(x-1) + "/" + to_string(y);
+          Teleport* t = new Teleport{0,ty,targetId,w-2,ty};
+          z->addTeleport(t);
+        }
+        if (x<20) {
+          string targetId = "Sector " + to_string(x+1) + "/" + to_string(y);
+          Teleport* t = new Teleport{w-2,ty,targetId,1,ty};
+          z->addTeleport(t);
+        }
+      }
 
-  		zones.insert(make_pair(zid,z));
-  	}
-  	y++;
+      zones.insert(make_pair(zid,z));
+
+      // sprinkle with critters
+
+      for (int i=0; i<4; i++) {
+
+        printf("Critter: %d\n",i);
+
+        int pad = 2;
+        int tx, ty;
+        bool done = false;
+        int tries = 10;
+        while (!done && tries>0) {
+          tx = rand()%(w-2*pad)+pad;
+          ty = rand()%(h-2*pad)+pad;
+          if (!(z->tileAt(tx,ty).flags & TILE_BLOCKS)) {
+            done = true;
+          }
+          tries--;
+        }
+
+        Critter* c = new Critter(z,tx,ty);
+        critters.push_back(c);
+      }
+    }
+    y++;
   }
 }
 
+void initCritters() {
+  printf("Initializing Critters...");
+
+  for (Critter* critter : critters) {
+    printf("Critter: %s at %d %d\n", critter->name.c_str(), critter->x, critter->y);
+  }
+}
+
+void initHero() {
+  hero.name = "mntmn";
+  hero.health = 20;
+  hero.strength = 9;
+}
+
 Zone* getZone(string zoneName) {
-	return zones.at(zoneName);
+  return zones.at(zoneName);
+}
+
+int getKeyX(TCOD_key_t key) {
+  if (key.vk == TCODK_LEFT) return -1;
+  if (key.vk == TCODK_RIGHT) return 1;
+  return 0;
+}
+
+int getKeyY(TCOD_key_t key) {
+  if (key.vk == TCODK_UP) return -1;
+  if (key.vk == TCODK_DOWN) return 1;
+  return 0;
 }
 
 vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
 
-	vector<string> responses;
+  vector<string> responses;
 
-	int newHeroX = hero.x;
-	int newHeroY = hero.y;
-	bool moveHero = false;
+  int newHeroX = hero.x;
+  int newHeroY = hero.y;
+  bool moveHero = false;
 
-	if (heroState == HSTATE_MOVE) {
-		// move state
+  int prevTurn = turn;
 
-		if (key.vk == TCODK_DOWN) {
-			newHeroY++;
-		} else if (key.vk == TCODK_UP) {
-			newHeroY--;
-		} else if (key.vk == TCODK_LEFT) {
-			newHeroX--;
-		} else if (key.vk == TCODK_RIGHT) {
-			newHeroX++;
-		}
+  if (heroState == HSTATE_MOVE) {
+    // move state
 
-		if (key.c == 't') {
-			// take item
-			vector<Item> heroItems = currentZone->itemsAt(hero.x, hero.y);
-			for (Item item : heroItems) {
-				responses.push_back(string("You take the ") + item.name);
-				inventory.push_back(item);
-				currentZone->eraseItem(hero.x, hero.y, item.name);
-			}
-		}
+    newHeroY += getKeyY(key);
+    newHeroX += getKeyX(key);
 
-		if (key.c == 'u') {
-			// use item
-			responses.push_back(string("Which item do you want to use? (0-9)"));
-			heroState = HSTATE_USE_SELECT;
-		}
-	} else if (heroState == HSTATE_USE_SELECT) {
+    if (key.c == 't') {
+      // take item
+      vector<Item> heroItems = currentZone->itemsAt(hero.x, hero.y);
+      for (Item item : heroItems) {
+        responses.push_back(string("You take the ") + item.name);
+        inventory.push_back(item);
+        currentZone->eraseItem(hero.x, hero.y, item.name);
+      }
 
-		if (key.c >= '0' && key.c <= '9') {
-			int itemNumber = key.c - '0';
+      turn++;
+    }
 
-			if (inventory.size()<=itemNumber) {
-				responses.push_back(string("No such item."));
-				heroState = HSTATE_MOVE;
-			} else {
-				Item item = inventory.at(itemNumber);
-				selectedItemId = itemNumber;
-				responses.push_back(string("Where do you want to use ")+item.name+"?");
-				heroState = HSTATE_USE_DIRECTION;
-			}
-		}
+    if (key.c == 'u') {
+      // use item
+      responses.push_back(string("Which item do you want to use? (0-9)"));
+      heroState = HSTATE_USE_SELECT;
+    }
 
-	} else if (heroState == HSTATE_USE_DIRECTION) {
-		int useX = hero.x;
-		int useY = hero.y;
+    if (key.c == 'm') {
+      // manipulate tile
+      responses.push_back(string("What do you want to manipulate (direction)?"));
+      heroState = HSTATE_MANIPULATE_DIRECTION;
+    }
 
-		if (key.vk == TCODK_DOWN) {
-			useY++;
-		} else if (key.vk == TCODK_UP) {
-			useY--;
-		} else if (key.vk == TCODK_LEFT) {
-			useX--;
-		} else if (key.vk == TCODK_RIGHT) {
-			useX++;
-		}
+    if (key.c == 'w') {
+      // manipulate tile
+      responses.push_back(string("What do you want wield/wear (0-9)?"));
+      heroState = HSTATE_WIELD_SELECT;
+    }
 
-		if (useX!=hero.x || useY!=hero.y) {
-			Item useItem = inventory.at(selectedItemId);
-			Tile useTile = currentZone->tileAt(useX, useY);
+  } else if (heroState == HSTATE_USE_SELECT) {
 
-			if (useItem.name == "apartment keys" && useTile.name == "locked door") {
-				responses.push_back(string("You use the ") + useItem.name + string(" with the ")+useTile.name+"!");
+    if (key.c >= '0' && key.c <= '9') {
+      int itemNumber = key.c - '0';
 
-				currentZone->mutate(useX, useY, useTile.unlock());
-			} else {
-				responses.push_back(string("That didn't work."));
-			}
+      if (inventory.size()<=itemNumber) {
+        responses.push_back(string("No such item."));
+        heroState = HSTATE_MOVE;
+      } else {
+        Item item = inventory.at(itemNumber);
+        selectedItemId = itemNumber;
+        responses.push_back(string("Where do you want to use ")+item.name+"?");
+        heroState = HSTATE_USE_DIRECTION;
+      }
+    }
 
-			heroState = HSTATE_MOVE;
-		}
-	}
+  } else if (heroState == HSTATE_WIELD_SELECT) {
 
-	Tile newHeroTile = currentZone->tileAt(newHeroX, newHeroY);
+    if (key.c >= '0' && key.c <= '9') {
+      int itemNumber = key.c - '0';
 
-	if (newHeroTile.flags & TILE_BLOCKS || newHeroTile.flags & TILE_LOCKED) {
-		responses.push_back(string("Your path is blocked by a ") + newHeroTile.name + string("."));
-	} else if (newHeroTile.flags & TILE_CLOSED) {
-		responses.push_back(string("You open the ") + newHeroTile.name + string("."));
-		Tile openedTile = newHeroTile.open();
+      if (inventory.size()<=itemNumber) {
+        responses.push_back(string("No such item."));
+        heroState = HSTATE_MOVE;
+      } else {
+        Item item = inventory.at(itemNumber);
+        selectedItemId = itemNumber;
 
-		currentZone->mutate(newHeroX, newHeroY, openedTile);
-	} else {
-		moveHero = true;
-	}
+        if (item.protection > 0) {
+          // wear
+          if (hero.toggleClothing(item)) {
+            responses.push_back(string("You put on the ") + item.name);
+          } else {
+            responses.push_back(string("You take off the ") + item.name);
+          }
+        } else if (item.hazard > 0) {
+          // wield
+          if (hero.toggleWield(item)) {
+            responses.push_back(string("You wield the ") + item.name);
+          } else {
+            responses.push_back(string("You no longer wield the ") + item.name);
+          }
+        }
+        heroState = HSTATE_MOVE;
+        turn++;
+      }
+    }
 
-	if (moveHero && (hero.x!=newHeroX || hero.y!=newHeroY)) {
-		hero.x = newHeroX;
-		hero.y = newHeroY;
+  } else if (heroState == HSTATE_USE_DIRECTION) {
+    int useX = hero.x;
+    int useY = hero.y;
 
-		vector<Item> heroItems = currentZone->itemsAt(hero.x, hero.y);
-		if (heroItems.size()==1) {
-			responses.push_back(string("There is an item here (t=take): ") + heroItems.at(0).name);
-		} else if (heroItems.size()>1) {
-			responses.push_back(string("There are several items here:"));
-			for (Item item : heroItems) {
-				responses.push_back(item.name);
-			}
-		}
+    useY += getKeyY(key);
+    useX += getKeyX(key);
 
-		Teleport* teleport = currentZone->teleportAt(hero.x, hero.y);
-		if (teleport != NULL) {
-			responses.push_back(string("You leave the ")+currentZone->title + string("."));
+    if (useX!=hero.x || useY!=hero.y) {
+      Item useItem = inventory.at(selectedItemId);
+      Tile useTile = currentZone->tileAt(useX, useY);
 
-			currentZone = getZone(teleport->zoneId);
-			hero.x = teleport->targetX;
-			hero.y = teleport->targetY;
-		}
-	}
+      if (useItem.name == "apartment keys" && useTile.name == "locked door") {
+        responses.push_back(string("You use the ") + useItem.name + string(" with the ")+useTile.name+"!");
 
-	return responses;
+        currentZone->mutate(useX, useY, useTile.unlock());
+      } else {
+        responses.push_back(string("That didn't work."));
+      }
+
+      heroState = HSTATE_MOVE;
+      turn++;
+    }
+  } else if (heroState == HSTATE_MANIPULATE_DIRECTION) {
+    int useX = hero.x;
+    int useY = hero.y;
+
+    useY += getKeyY(key);
+    useX += getKeyX(key);
+
+    if (useX!=hero.x || useY!=hero.y) {
+
+      Tile useTile = currentZone->tileAt(useX, useY);
+
+      if (useTile.flags & TILE_OPEN) {
+        responses.push_back(string("You close the ") + useTile.name + string("."));
+        Tile closedTile = useTile.close();
+
+        currentZone->mutate(useX, useY, closedTile);
+        currentZone->updateTcodMap();
+      }
+
+      heroState = HSTATE_MOVE;
+      turn++;
+    }
+  }
+
+  Tile newHeroTile = currentZone->tileAt(newHeroX, newHeroY);
+
+  if (newHeroTile.flags & TILE_BLOCKS || newHeroTile.flags & TILE_LOCKED) {
+    responses.push_back(string("Your path is blocked by a ") + newHeroTile.name + string("."));
+  } else if (newHeroTile.flags & TILE_CLOSED) {
+    responses.push_back(string("You open the ") + newHeroTile.name + string("."));
+    Tile openedTile = newHeroTile.open();
+    
+    currentZone->mutate(newHeroX, newHeroY, openedTile);
+    currentZone->updateTcodMap();
+    turn++;
+  } else {
+    moveHero = true;
+  }
+
+  if (moveHero && (hero.x!=newHeroX || hero.y!=newHeroY)) {
+
+    // check for critters
+
+    bool attacked = false;
+    int idx = 0;
+    for (Critter* critter : critters) {
+      if (critter->zone == currentZone && critter->x==newHeroX && critter->y==newHeroY) {
+        // move onto critter -> attack
+        int attackResult = critter->attackBy(&hero);
+
+        if (attackResult>0) {
+          int dmg = attackResult;
+          responses.push_back(string("You swing at the ") + critter->name.c_str() + " and cause "+to_string(dmg)+" damage!");
+        } else {
+          responses.push_back(string("You swing at the ") + critter->name.c_str() + " but miss.");
+        }
+
+        if (!critter->isAlive()) {
+          responses.push_back(string("The ") + critter->name.c_str() + " dies.");
+          critters.erase(critters.begin() + idx);
+        }
+
+        attacked = true;
+        break;
+      }
+      idx++;
+    }
+
+    if (!attacked) {
+      hero.x = newHeroX;
+      hero.y = newHeroY;
+    
+      vector<Item> heroItems = currentZone->itemsAt(hero.x, hero.y);
+      if (heroItems.size()==1) {
+        responses.push_back(string("There is an item here (t=take): ") + heroItems.at(0).name);
+      } else if (heroItems.size()>1) {
+        responses.push_back(string("There are several items here:"));
+        for (Item item : heroItems) {
+          responses.push_back(item.name);
+        }
+      }
+
+      Teleport* teleport = currentZone->teleportAt(hero.x, hero.y);
+      if (teleport != NULL) {
+        responses.push_back(string("You leave the ")+currentZone->title + string("."));
+
+        currentZone = getZone(teleport->zoneId);
+        hero.x = teleport->targetX;
+        hero.y = teleport->targetY;
+      }
+    }
+
+    turn++;
+  }
+
+  if (turn!=prevTurn) {
+    printf("Turn passed! (%d)\n", turn);
+    vector<string> critterResponses = moveCritters(currentZone);
+
+    for (auto s : critterResponses) {
+      responses.push_back(s);
+    }
+  }
+
+  return responses;
 }
 
 
 extern "C" int SDL_main(int argc, char** argv) {
-	initTCod();
+  initTCod();
 
-	TCOD_key_t key{TCODK_NONE,0};
-	TCOD_mouse_t mouse;
+  TCOD_key_t key{TCODK_NONE,0};
+  TCOD_mouse_t mouse;
 
-	initZones();
-	currentZone = getZone(SPAWN_ZONE);
+  initHero();
+  initZones();
+  initCritters();
+  currentZone = getZone(SPAWN_ZONE);
+  hero.zone = currentZone;
 
-	vector<string> messages = {};
+  vector<string> messages = {};
 
-	while (!TCODConsole::isWindowClosed()) {
-		renderZone(currentZone);
-		renderMessages(&messages);
-		renderInventory();
-		TCODConsole::blit(&tc,0,0,SCREEN_WIDTH,SCREEN_HEIGHT, 
-			TCODConsole::root,0,0);
+  while (!TCODConsole::isWindowClosed()) {
+    renderZone(currentZone);
+    renderMessages(&messages);
+    renderInventory();
+    renderStats();
+    TCODConsole::blit(&tc,0,0,SCREEN_WIDTH,SCREEN_HEIGHT, 
+      TCODConsole::root,0,0);
 
-		TCODConsole::flush();
+    TCODConsole::flush();
 
-		TCODSystem::checkForEvent((TCOD_event_t)(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE),&key,&mouse);
+    TCODSystem::checkForEvent((TCOD_event_t)(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE),&key,&mouse);
 
-		auto newMessages = processInput(key, mouse);
-		for (string msg : newMessages) {
-			messages.push_back(msg);
+    auto newMessages = processInput(key, mouse);
+    for (string msg : newMessages) {
+      messages.push_back(msg);
 
-			if (messages.size() > MAX_CONSOLE_MSGS) {
-				messages.erase(messages.begin()+messages.size()-MAX_CONSOLE_MSGS);
-			}
-		}
-	}
+      if (messages.size() > MAX_CONSOLE_MSGS) {
+        messages.erase(messages.begin()+messages.size()-MAX_CONSOLE_MSGS);
+      }
+    }
+  }
 
-	return 0;
+  return 0;
 }
