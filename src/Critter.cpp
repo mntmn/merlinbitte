@@ -10,8 +10,6 @@ Critter::Critter(Zone* zone, int x, int y) {
   this->agility = 2;
   this->willpower = 1;
 
-  this->weapon = NULL;
-
   this->zone = zone;
 
   this->consoleChar = 'Z';
@@ -25,36 +23,57 @@ bool Critter::isAlive() {
 
 int Critter::armorValue() {
   int v = 0;
-  for (Item* c : this->clothes) {
-    v += c->protection;
-    printf("clothes: %s %d prot\n",c->name.c_str(),c->protection);
+  for (Item c : this->clothes) {
+    v += c.protection;
   }
   return v;
 }
 
 int Critter::damageValue() {
   int weaponFactor = 1;
-  if (weapon!=NULL) {
-    weaponFactor = weapon->weight * weapon->hazard;
+  if (hasWeapon()) {
+    weaponFactor = getWeapon().hazard;
   }
 
   return weaponFactor;
 }
 
-bool Critter::toggleClothing(Item* item) {
-  clothes.push_back(item);
-  printf("pushing to clothes: %s\n",item->name.c_str());
+bool Critter::toggleClothing(Item item) {
+  int idx = 0;
+  for (Item c : clothes) {
+    if (c.is(&item)) {
+      clothes.erase(clothes.begin() + idx);
+      return false;
+    }
+    idx++;
+  }
 
+  clothes.push_back(item);
+  
   return true;
 }
 
-bool Critter::toggleWield(Item* item) {
-  if (this->weapon == item) {
-    this->weapon = NULL;
+bool Critter::hasWeapon() {
+  return this->weapons.size()>0;
+}
+
+Item Critter::getWeapon() {
+  return this->weapons.at(0);
+}
+
+bool Critter::toggleWield(Item item) {
+  if (!hasWeapon()) {
+    this->weapons.push_back(item);
+    return true;
+  }
+
+  if (getWeapon().is(&item)) {
+    this->weapons.empty();
     return false;
   }
 
-  this->weapon = item;
+  this->weapons.empty();
+  this->weapons.push_back(item);
   return true;
 }
 

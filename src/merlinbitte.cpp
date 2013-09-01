@@ -15,6 +15,7 @@
 #define HSTATE_USE_DIRECTION 2
 #define HSTATE_MANIPULATE_DIRECTION 3
 #define HSTATE_WIELD_SELECT 4
+#define HSTATE_DEAD 666
 
 using namespace std;
 
@@ -23,16 +24,19 @@ TCODConsole tc(SCREEN_WIDTH, SCREEN_HEIGHT);
 map<string, Zone*> zones;
 Zone* currentZone;
 
-Critter hero{NULL, 17, 15};
-
+Critter hero{NULL,0,0};
+vector<string> consoleMessages = {};
 vector<Item> inventory;
+vector<Critter*> critters;
+
 int heroState = HSTATE_MOVE;
 int selectedItemId = 0;
 int yOffset = 2;
 
 int turn = 0;
 
-vector<Critter*> critters;
+void restart();
+
 
 vector<string> moveCritters(Zone* playerZone) {
   vector<string> responses;
@@ -122,12 +126,12 @@ void renderInventory() {
   int idx = 0;
   for (Item item : inventory) {
     string mod = "";
-    if (hero.weapon == &item) {
-      mod += "W ";
+    if (hero.hasWeapon() && hero.getWeapon().is(&item)) {
+      mod += "[W] ";
     } else {
-      for (Item* c : hero.clothes) {
-        if (c == &item) {
-          mod += "w ";
+      for (Item c : hero.clothes) {
+        if (c.is(&item)) {
+          mod += "[w] ";
         }
       }
     }
@@ -235,9 +239,6 @@ void initZones() {
       // sprinkle with critters
 
       for (int i=0; i<4; i++) {
-
-        printf("Critter: %d\n",i);
-
         int pad = 2;
         int tx, ty;
         bool done = false;
@@ -268,6 +269,8 @@ void initCritters() {
 }
 
 void initHero() {
+
+  hero=Critter{NULL, 17, 15};
   hero.name = "mntmn";
   hero.health = 20;
   hero.strength = 9;
@@ -427,6 +430,11 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
       heroState = HSTATE_MOVE;
       turn++;
     }
+  } else if (heroState == HSTATE_DEAD) {
+    if (key.c == 'r') {
+      restart();
+      return responses;
+    }
   }
 
   Tile newHeroTile = currentZone->tileAt(newHeroX, newHeroY);
@@ -500,6 +508,14 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
     turn++;
   }
 
+  if (hero.health<1) {
+    if (heroState != HSTATE_DEAD) {
+      hero.health = 0;
+      responses.push_back(string("You're dead. Game over. (r=restart)"));
+      heroState = HSTATE_DEAD;
+    }
+  }
+
   if (turn!=prevTurn) {
     printf("Turn passed! (%d)\n", turn);
     vector<string> critterResponses = moveCritters(currentZone);
@@ -512,12 +528,12 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
   return responses;
 }
 
-
-extern "C" int SDL_main(int argc, char** argv) {
-  initTCod();
-
-  TCOD_key_t key{TCODK_NONE,0};
-  TCOD_mouse_t mouse;
+void restart() {
+  turn = 0;
+  consoleMessages.clear();
+  inventory.clear();
+  critters.clear();
+  zones.clear();
 
   initHero();
   initZones();
@@ -525,11 +541,20 @@ extern "C" int SDL_main(int argc, char** argv) {
   currentZone = getZone(SPAWN_ZONE);
   hero.zone = currentZone;
 
-  vector<string> messages = {};
+  heroState = HSTATE_MOVE;
+}
+
+extern "C" int SDL_main(int argc, char** argv) {
+  initTCod();
+
+  TCOD_key_t key{TCODK_NONE,0};
+  TCOD_mouse_t mouse;
+
+  restart();
 
   while (!TCODConsole::isWindowClosed()) {
     renderZone(currentZone);
-    renderMessages(&messages);
+    renderMessages(&consoleMessages);
     renderInventory();
     renderStats();
     TCODConsole::blit(&tc,0,0,SCREEN_WIDTH,SCREEN_HEIGHT, 
@@ -541,10 +566,10 @@ extern "C" int SDL_main(int argc, char** argv) {
 
     auto newMessages = processInput(key, mouse);
     for (string msg : newMessages) {
-      messages.push_back(msg);
+      consoleMessages.push_back(msg);
 
-      if (messages.size() > MAX_CONSOLE_MSGS) {
-        messages.erase(messages.begin()+messages.size()-MAX_CONSOLE_MSGS);
+      if (consoleMessages.size() > MAX_CONSOLE_MSGS) {
+        consoleMessages.erase(consoleMessages.begin()+consoleMessages.size()-MAX_CONSOLE_MSGS);
       }
     }
   }

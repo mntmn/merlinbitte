@@ -27,8 +27,8 @@ public:
   TCODColor fg;
   TCODColor bg;
 
-  Item* weapon;
-  std::vector<Item*> clothes;
+  std::vector<Item> weapons;
+  std::vector<Item> clothes;
 
   Critter(Zone* zone, int x, int y);
   bool isAlive();
@@ -37,8 +37,11 @@ public:
   int armorValue();
   int damageValue();
 
-  bool toggleClothing(Item* item);
-  bool toggleWield(Item* item);
+  bool toggleClothing(Item item);
+  bool toggleWield(Item item);
+
+  bool hasWeapon();
+  Item getWeapon();
 };
 
 #endif

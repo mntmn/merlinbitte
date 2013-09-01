@@ -9,6 +9,8 @@
 using namespace std;
 
 struct Item {
+  int uniqueId;
+
   unsigned char consoleChar;
   unsigned int flags;
   string name;
@@ -19,6 +21,9 @@ struct Item {
 
   TCODColor fg;
   TCODColor bg;
+
+  Item(unsigned char consoleChar, int flags, string name, int weight, int hazard, int protection, TCODColor fg, TCODColor bg);
+  bool is(Item* otherItem);
 };
 
 #endif
