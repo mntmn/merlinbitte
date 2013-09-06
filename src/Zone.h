@@ -16,6 +16,7 @@
 #define TILE_LOCKED 2
 #define TILE_CLOSED 4
 #define TILE_OPEN 8
+#define TILE_DESTRUCTIBLE 16
 
 #define ITEM_WEAPON 1
 #define ITEM_FOOD 2
@@ -47,6 +48,7 @@ struct Tile {
   Tile open();
   Tile close();
   Tile lock();
+  Tile destroy();
 };
 
 class Zone {
