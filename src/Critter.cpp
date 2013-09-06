@@ -1,20 +1,72 @@
 #include "Critter.h"
 
-Critter::Critter(Zone* zone, int x, int y) {
-  this->name = "Random Critter";
+Critter::Critter(Zone* zone, int x, int y, int templateId) {
+  
+  this->zone = zone;
   this->x = x;
   this->y = y;
-  this->health = 10;
-  this->strength = 5;
-  this->intelligence = 1;
-  this->agility = 2;
-  this->willpower = 1;
+  
+  sleepTurns = 0;
 
-  this->zone = zone;
+  switch (templateId) {
+    case 0:
+      name = "Random Critter";
+      maxHealth = 10;
+      strength = 5;
+      intelligence = 1;
+      agility = 2;
+      willpower = 1;
+      consoleChar = 'Z';
+      fg = TCODColor::darkRed;
+      bg = TCODColor::black;
+      break;
+    case 1:
+      name = "Neonazi Scum";
+      maxHealth = 10;
+      strength = 6;
+      intelligence = 1;
+      agility = 2;
+      willpower = 3;
+      consoleChar = 'N';
+      fg = TCODColor::white;
+      bg = TCODColor::lightRed;
+      break;
+    case 2:
+      name = "Neonazi Ueberscum";
+      maxHealth = 20;
+      strength = 9;
+      intelligence = 1;
+      agility = 1;
+      willpower = 3;
+      consoleChar = 'N';
+      fg = TCODColor::white;
+      bg = TCODColor::darkRed;
+      break;
+    case 3:
+      name = "Drunk Tourist";
+      maxHealth = 5;
+      strength = 5;
+      intelligence = 2;
+      agility = 1;
+      willpower = 1;
+      consoleChar = 'T';
+      fg = TCODColor::white;
+      bg = TCODColor::blue;
+      break;
+    case 4:
+      name = "Tilidinized Mouthfoamer";
+      maxHealth = 5;
+      strength = 6;
+      intelligence = 1;
+      agility = 1;
+      willpower = 5;
+      consoleChar = 'M';
+      fg = TCODColor::white;
+      bg = TCODColor::darkSepia;
+      break;
+  }
 
-  this->consoleChar = 'Z';
-  this->fg = TCODColor::darkRed;
-  this->bg = TCODColor::black;
+  health = maxHealth;
 }
 
 bool Critter::isAlive() {

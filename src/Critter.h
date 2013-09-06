@@ -5,6 +5,9 @@
 #include <string>
 #include "Zone.h"
 
+#define NUM_CRITTER_TEMPLATES 5
+#define MAX_WILLPOWER 10
+
 using namespace std;
 
 struct Critter {
@@ -15,6 +18,7 @@ public:
   int x;
   int y;
 
+  int maxHealth;
   int health;
   int state;
 
@@ -23,6 +27,8 @@ public:
   int agility;
   int willpower;
 
+  int sleepTurns;
+
   unsigned char consoleChar;
   TCODColor fg;
   TCODColor bg;
@@ -30,7 +36,7 @@ public:
   std::vector<Item> weapons;
   std::vector<Item> clothes;
 
-  Critter(Zone* zone, int x, int y);
+  Critter(Zone* zone, int x, int y, int templateId);
   bool isAlive();
 
   int attackBy(Critter* attacker);

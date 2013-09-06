@@ -15,6 +15,8 @@
 #define HSTATE_USE_DIRECTION 2
 #define HSTATE_MANIPULATE_DIRECTION 3
 #define HSTATE_WIELD_SELECT 4
+#define HSTATE_SMASH_DIRECTION 5
+#define HSTATE_SLEEP 500
 #define HSTATE_DEAD 666
 
 using namespace std;
@@ -24,7 +26,7 @@ TCODConsole tc(SCREEN_WIDTH, SCREEN_HEIGHT);
 map<string, Zone*> zones;
 Zone* currentZone;
 
-Critter hero{NULL,0,0};
+Critter hero{NULL,0,0,0};
 vector<string> consoleMessages = {};
 vector<Item> inventory;
 vector<Critter*> critters;
@@ -47,7 +49,12 @@ vector<string> moveCritters(Zone* playerZone) {
 
       auto path = new TCODPath(playerZone->getTcodMap(), 1.0f); 
       if (path->compute(c->x, c->y, hero.x, hero.y)) {
-        if (!path->isEmpty()) {
+
+        // trial against willpower
+        bool enoughWillPower = (c->willpower > rand()%MAX_WILLPOWER);
+          
+        if (enoughWillPower && !path->isEmpty()) {
+
           int nextX, nextY;
           path->walk(&nextX, &nextY, true);
 
@@ -252,7 +259,9 @@ void initZones() {
           tries--;
         }
 
-        Critter* c = new Critter(z,tx,ty);
+        int templateId = rand()%NUM_CRITTER_TEMPLATES;
+
+        Critter* c = new Critter(z,tx,ty,templateId);
         critters.push_back(c);
       }
     }
@@ -270,8 +279,9 @@ void initCritters() {
 
 void initHero() {
 
-  hero=Critter{NULL, 17, 15};
+  hero=Critter{NULL, 17, 15, 0};
   hero.name = "mntmn";
+  hero.maxHealth = 20;
   hero.health = 20;
   hero.strength = 9;
 }
@@ -302,7 +312,25 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
 
   int prevTurn = turn;
 
-  if (heroState == HSTATE_MOVE) {
+  if (heroState == HSTATE_SLEEP) {
+    hero.sleepTurns--;
+    turn++;
+    responses.push_back(string("You sleep, dreamless."));
+    
+    if (hero.health < hero.maxHealth) {
+      // trial for healing
+      if (rand()%10 > 6) {
+        hero.health++;
+        responses.push_back(string("Your body heals for 1 point."));
+      }
+    }
+
+    if (hero.sleepTurns<1) {
+      heroState = HSTATE_MOVE;
+      responses.push_back(string("You wake up."));
+    }
+
+  } else if (heroState == HSTATE_MOVE) {
     // move state
 
     newHeroY += getKeyY(key);
@@ -330,6 +358,19 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
       // manipulate tile
       responses.push_back(string("What do you want to manipulate (direction)?"));
       heroState = HSTATE_MANIPULATE_DIRECTION;
+    }
+
+    if (key.c == 's') {
+      // smash tile
+      responses.push_back(string("What do you want to smash (direction)?"));
+      heroState = HSTATE_SMASH_DIRECTION;
+    }
+
+    if (key.c == 'S') {
+      // smash tile
+      responses.push_back(string("You fall asleep..."));
+      heroState = HSTATE_SLEEP;
+      hero.sleepTurns = 10;
     }
 
     if (key.c == 'w') {
@@ -430,6 +471,26 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
       heroState = HSTATE_MOVE;
       turn++;
     }
+  } else if (heroState == HSTATE_SMASH_DIRECTION) {
+    int useX = hero.x + getKeyX(key);
+    int useY = hero.y + getKeyY(key);
+
+    if (useX!=hero.x || useY!=hero.y) {
+      Tile useTile = currentZone->tileAt(useX, useY);
+
+      if (useTile.flags & TILE_DESTRUCTIBLE) {
+        responses.push_back(string("You smash the ") + useTile.name + string(" into pieces."));
+        Tile smashedTile = useTile.destroy();
+
+        currentZone->mutate(useX, useY, smashedTile);
+        currentZone->updateTcodMap();
+      } else {
+        responses.push_back(string("You can't seem to destroy the ") + useTile.name + string("."));
+      }
+
+      heroState = HSTATE_MOVE;
+      turn++;
+    }
   } else if (heroState == HSTATE_DEAD) {
     if (key.c == 'r') {
       restart();
@@ -469,6 +530,8 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
         } else {
           responses.push_back(string("You swing at the ") + critter->name.c_str() + " but miss.");
         }
+
+        critter->willpower++; // attacked enemy wants revenge
 
         if (!critter->isAlive()) {
           responses.push_back(string("The ") + critter->name.c_str() + " dies.");
