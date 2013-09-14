@@ -19,10 +19,17 @@ struct Item {
   int hazard;
   int protection;
 
+  int hungerEffect;
+  int thirstEffect;
+
   TCODColor fg;
   TCODColor bg;
 
-  Item(unsigned char consoleChar, int flags, string name, int weight, int hazard, int protection, TCODColor fg, TCODColor bg);
+  Item(unsigned char consoleChar, 
+    int flags, string name, 
+    int weight, int hazard, int protection,
+    int hungerEffect, int thirstEffect,
+    TCODColor fg, TCODColor bg);
   bool is(Item* otherItem);
 };
 

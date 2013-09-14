@@ -7,6 +7,8 @@
 
 #define NUM_CRITTER_TEMPLATES 5
 #define MAX_WILLPOWER 10
+#define MAX_HUNGER 10
+#define MAX_THIRST 10
 
 using namespace std;
 
@@ -28,6 +30,9 @@ public:
   int willpower;
 
   int sleepTurns;
+
+  int hungerLevel;
+  int thirstLevel;
 
   unsigned char consoleChar;
   TCODColor fg;

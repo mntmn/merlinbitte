@@ -35,5 +35,5 @@
 13,16,empty blister of ibuprofen
 !teleports
 20,29,apt-stairs,6,2
-0,27,torstrasse,26,21
-0,28,torstrasse,26,22
+0,27,Sector 10/9,26,21
+0,28,Sector 10/9,26,22

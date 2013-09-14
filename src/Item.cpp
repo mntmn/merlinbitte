@@ -2,7 +2,10 @@
 
 static int lastUniqueId = 0;
 
-Item::Item(unsigned char consoleChar, int flags, string name, int weight, int hazard, int protection, TCODColor fg, TCODColor bg) {
+Item::Item(unsigned char consoleChar, int flags, string name, 
+  int weight, int hazard, int protection, 
+  int hungerEffect, int thirstEffect,
+  TCODColor fg, TCODColor bg) {
   
   printf("lastUniqueId: %d\n",lastUniqueId);
 
@@ -14,6 +17,7 @@ Item::Item(unsigned char consoleChar, int flags, string name, int weight, int ha
   this->weight = weight;
   this->hazard = hazard;
   this->protection = protection;
+  this->hungerEffect = hungerEffect;
   this->fg = fg;
   this->bg = bg;
 }

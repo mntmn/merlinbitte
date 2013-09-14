@@ -7,7 +7,7 @@
 
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 60
-#define SPAWN_ZONE "Sector 10/9"
+#define SPAWN_ZONE "Sector 8/4"
 #define MAX_CONSOLE_MSGS 10
 
 #define HSTATE_MOVE 0
@@ -205,25 +205,55 @@ void initZones() {
   int x=0;
   int w=40;
   int h=40;
+  int seedW = 20;
+  int seedH = 20;
   int lc=0;
+
+  auto lines = vector<string>;
+
   for (string line; getline(input, line);) {
-    printf("Read line: %d\n",lc++);
-    for (int x=0; x<w; x++) {
+    //printf("Read line: %d\n",lc++);
+    lines.push_back(line);
+  }
+
+  for (string line : lines) {
+    for (int x=0; x<seedW; x++) {
       string zid = "Sector " + to_string(x) + "/" + to_string(y);
       auto z = new Zone(zid,w,h);
       z->generate(line[x]);
 
+      char toLeft=0, toRight=0, toTop=0, toBottom=0;
+
+      if (x>0) toLeft = line[x-1];
+      if (x<seedW-1) toRight = line[x+1];
+      if (y>0) toTop = line[y-1];
+      if (y<seedH-1) toBottom = line[y+1];
+
+      string targetId;
       // add north, south teleports
       for (int tx=0; tx<w; tx++) {
         if (y>0) {
-          string targetId = "Sector " + to_string(x) + "/" + to_string(y-1);
+          
+          if (toTop == '1') {
+            targetId = "apartment";
+          } else {
+            targetId = "Sector " + to_string(x) + "/" + to_string(y-1);
+          }
+
           Teleport* t = new Teleport{tx,0,targetId,tx,h-2};
           z->addTeleport(t);
         }
-        if (y<20) {
-          string targetId = "Sector " + to_string(x) + "/" + to_string(y+1);
+        if (toBottom>0) {
+          if (toBottom = '1') {
+            targetId = "apartment";
+          } else {
+            targetId = "Sector " + to_string(x) + "/" + to_string(y+1);
+          }
+
           Teleport* t = new Teleport{tx,h-1,targetId,tx,1};
           z->addTeleport(t);
+        } else {
+          // edge of map
         }
       }
 
@@ -234,10 +264,12 @@ void initZones() {
           Teleport* t = new Teleport{0,ty,targetId,w-2,ty};
           z->addTeleport(t);
         }
-        if (x<20) {
+        if (toRight>0) {
           string targetId = "Sector " + to_string(x+1) + "/" + to_string(y);
           Teleport* t = new Teleport{w-2,ty,targetId,1,ty};
           z->addTeleport(t);
+        } else {
+          // edge of map
         }
       }
 
@@ -283,7 +315,7 @@ void initHero() {
   hero.name = "mntmn";
   hero.maxHealth = 20;
   hero.health = 20;
-  hero.strength = 9;
+  hero.strength = 3;
 }
 
 Zone* getZone(string zoneName) {
@@ -390,8 +422,20 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
       } else {
         Item item = inventory.at(itemNumber);
         selectedItemId = itemNumber;
-        responses.push_back(string("Where do you want to use ")+item.name+"?");
-        heroState = HSTATE_USE_DIRECTION;
+
+        if (item.hungerEffect > 0) {
+          // food item
+
+          responses.push_back(string("You eat the ")+item.name+", quelling your hunger.");
+          hero.hungerLevel -= item.hungerEffect;
+          if (hero.hungerLevel<0) hero.hungerLevel = 0;
+
+          inventory.erase(inventory.begin() + selectedItemId);
+          heroState = HSTATE_MOVE;
+        } else {
+          responses.push_back(string("Where do you want to use ")+item.name+"?");
+          heroState = HSTATE_USE_DIRECTION;
+        }
       }
     }
 
@@ -579,8 +623,24 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
     }
   }
 
+  // turm passed
   if (turn!=prevTurn) {
     printf("Turn passed! (%d)\n", turn);
+
+    if (rand()%10>8) hero.hungerLevel++;
+
+    if (hero.hungerLevel > 4) {
+      if (hero.hungerLevel > 8) {
+        responses.push_back(string("You're very hungry."));
+        if (rand()%hero.hungerLevel>8) {
+          responses.push_back(string("You're starving and lose 1 HP."));
+          hero.health--;
+        }
+      } else {
+        responses.push_back(string("Your stomach grumbles."));
+      }
+    }
+
     vector<string> critterResponses = moveCritters(currentZone);
 
     for (auto s : critterResponses) {

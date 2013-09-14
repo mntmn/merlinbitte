@@ -7,6 +7,8 @@ Critter::Critter(Zone* zone, int x, int y, int templateId) {
   this->y = y;
   
   sleepTurns = 0;
+  hungerLevel = 0;
+  thirstLevel = 0;
 
   switch (templateId) {
     case 0:
