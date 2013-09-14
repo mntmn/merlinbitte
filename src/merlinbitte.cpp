@@ -172,7 +172,7 @@ void renderStats() {
 void initTCod() {
   auto fullscreen = false;
 
-  const char *font="data/fonts/consolas12x12_gs_tc.png";
+  const char *font="data/fonts/consolas8x8_gs_tc.png";
 
   int fontFlags=TCOD_FONT_TYPE_GREYSCALE|TCOD_FONT_LAYOUT_TCOD, fontNewFlags=0;
 
@@ -235,7 +235,7 @@ void initZones() {
         if (toTop!=0) {
           if (toTop == '1') {
             targetId = "backyard";
-            printf("zid %s top linked to %s\n",zid.c_str(), targetId.c_str());
+            //printf("zid %s top linked to %s\n",zid.c_str(), targetId.c_str());
           } else {
             targetId = "Sector " + to_string(x) + "/" + to_string(y-1);
           }
@@ -246,7 +246,7 @@ void initZones() {
         if (toBottom!=0) {
           if (toBottom == '1') {
             targetId = "backyard";
-            printf("zid %s bottom linked to %s\n",zid.c_str(), targetId.c_str());
+            //printf("zid %s bottom linked to %s\n",zid.c_str(), targetId.c_str());
           } else {
             targetId = "Sector " + to_string(x) + "/" + to_string(y+1);
           }
@@ -263,7 +263,7 @@ void initZones() {
         if (toLeft!=0) {
           if (toLeft == '1') {
             targetId = "backyard";
-            printf("zid %s left linked to %s\n",zid.c_str(), targetId.c_str());
+            //printf("zid %s left linked to %s\n",zid.c_str(), targetId.c_str());
           } else {
             targetId = "Sector " + to_string(x-1) + "/" + to_string(y);
           }
@@ -273,7 +273,7 @@ void initZones() {
         if (toRight!=0) {
           if (toRight == '1') {
             targetId = "backyard";
-            printf("zid %s right linked to %s\n",zid.c_str(), targetId.c_str());
+            //printf("zid %s right linked to %s\n",zid.c_str(), targetId.c_str());
           } else {
             targetId = "Sector " + to_string(x+1) + "/" + to_string(y);
           }

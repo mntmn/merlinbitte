@@ -198,7 +198,7 @@ void Zone::load(string filename) {
   int mode = ZL_TILES;
 
   for (string line; getline(input, line);) {
-    printf("[Zone] Read line: %s\n",line.c_str());
+    //printf("[Zone] Read line: %s\n",line.c_str());
 
     if (line=="!items") {
       mode = ZL_ITEMS;
@@ -243,7 +243,7 @@ void Zone::load(string filename) {
         int tx = atoi(parts.at(3).c_str());
         int ty = atoi(parts.at(4).c_str());
 
-        printf("Adding Teleport to %s at %d:%d.\n", zoneId.c_str(), x, y);
+        //printf("Adding Teleport to %s at %d:%d.\n", zoneId.c_str(), x, y);
         Teleport* t = new Teleport{x,y,zoneId,tx,ty};
 
         teleports.push_back(t);
