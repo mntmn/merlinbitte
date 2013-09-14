@@ -7,7 +7,7 @@
 
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 60
-#define SPAWN_ZONE "Sector 8/4"
+#define SPAWN_ZONE "apartment"
 #define MAX_CONSOLE_MSGS 10
 
 #define HSTATE_MOVE 0
@@ -209,7 +209,7 @@ void initZones() {
   int seedH = 20;
   int lc=0;
 
-  auto lines = vector<string>;
+  vector<string> lines;
 
   for (string line; getline(input, line);) {
     //printf("Read line: %d\n",lc++);
@@ -226,16 +226,16 @@ void initZones() {
 
       if (x>0) toLeft = line[x-1];
       if (x<seedW-1) toRight = line[x+1];
-      if (y>0) toTop = line[y-1];
-      if (y<seedH-1) toBottom = line[y+1];
+      if (y>0) toTop = lines[y-1][x];
+      if (y<seedH-1) toBottom = lines[y+1][x];
 
       string targetId;
       // add north, south teleports
       for (int tx=0; tx<w; tx++) {
-        if (y>0) {
-          
+        if (toTop!=0) {
           if (toTop == '1') {
-            targetId = "apartment";
+            targetId = "backyard";
+            printf("zid %s top linked to %s\n",zid.c_str(), targetId.c_str());
           } else {
             targetId = "Sector " + to_string(x) + "/" + to_string(y-1);
           }
@@ -243,9 +243,10 @@ void initZones() {
           Teleport* t = new Teleport{tx,0,targetId,tx,h-2};
           z->addTeleport(t);
         }
-        if (toBottom>0) {
-          if (toBottom = '1') {
-            targetId = "apartment";
+        if (toBottom!=0) {
+          if (toBottom == '1') {
+            targetId = "backyard";
+            printf("zid %s bottom linked to %s\n",zid.c_str(), targetId.c_str());
           } else {
             targetId = "Sector " + to_string(x) + "/" + to_string(y+1);
           }
@@ -259,13 +260,23 @@ void initZones() {
 
       // add east, west teleports
       for (int ty=0; ty<h; ty++) {
-        if (x>0) {
-          string targetId = "Sector " + to_string(x-1) + "/" + to_string(y);
+        if (toLeft!=0) {
+          if (toLeft == '1') {
+            targetId = "backyard";
+            printf("zid %s left linked to %s\n",zid.c_str(), targetId.c_str());
+          } else {
+            targetId = "Sector " + to_string(x-1) + "/" + to_string(y);
+          }
           Teleport* t = new Teleport{0,ty,targetId,w-2,ty};
           z->addTeleport(t);
         }
-        if (toRight>0) {
-          string targetId = "Sector " + to_string(x+1) + "/" + to_string(y);
+        if (toRight!=0) {
+          if (toRight == '1') {
+            targetId = "backyard";
+            printf("zid %s right linked to %s\n",zid.c_str(), targetId.c_str());
+          } else {
+            targetId = "Sector " + to_string(x+1) + "/" + to_string(y);
+          }
           Teleport* t = new Teleport{w-2,ty,targetId,1,ty};
           z->addTeleport(t);
         } else {
@@ -305,7 +316,7 @@ void initCritters() {
   printf("Initializing Critters...");
 
   for (Critter* critter : critters) {
-    printf("Critter: %s at %d %d\n", critter->name.c_str(), critter->x, critter->y);
+    //printf("Critter: %s at %d %d\n", critter->name.c_str(), critter->x, critter->y);
   }
 }
 

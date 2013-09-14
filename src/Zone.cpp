@@ -303,7 +303,7 @@ void Zone::generateHouses(int ox, int oy, int w, int h, int mind, int maxdx, int
             const int itemR = rand()%(itemCount+80);
             if (itemR<itemCount) {
 
-              printf("item: %d %s\n",itemR,items[itemR].c_str());
+              //printf("item: %d %s\n",itemR,items[itemR].c_str());
 
               Item item = itemDefs.at(items[itemR]);
 
@@ -350,7 +350,7 @@ void Zone::generateHouses(int ox, int oy, int w, int h, int mind, int maxdx, int
 
 void Zone::generate(char zoneType) {
 
-  printf("[Zone] generating zone of type %c\n",zoneType);
+  //printf("[Zone] generating zone of type %c\n",zoneType);
 
   for (int y=0; y<height; y++) {
     for (int x=0; x<width; x++) {
@@ -396,7 +396,6 @@ void Zone::generate(char zoneType) {
 
   if (zoneType=='R') {
     // generate residential houses
-    printf("generate residential houses");
     generateHouses(0,0,width,height,1,3,3);
   }
 
