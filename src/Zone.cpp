@@ -8,23 +8,26 @@ map<char,Tile> tileDefs = {
 
   {'|', Tile{'|', TILE_BLOCKS, "wall", TCODColor::lightGrey, TCODColor::darkestGrey}},
   {'.', Tile{'.', TILE_BLOCKS, "corner", TCODColor::lightGrey, TCODColor::darkestGrey}},
+  {',', Tile{',', 0, "rubble", TCODColor::lightGrey, TCODColor::black}},
 
+  {'#', Tile{'#', TILE_BLOCKS | TILE_DESTRUCTIBLE, "window", TCODColor::white, TCODColor::black}},
   {'=', Tile{'=', TILE_BLOCKS, "wall", TCODColor::lightGrey, TCODColor::darkestGrey}},
   {'+', Tile{'+', TILE_BLOCKS, "fence", TCODColor::lightGreen, TCODColor::darkestGrey}},
+  {';', Tile{';', 0, "smashed window", TCODColor::white, TCODColor::black}},
   
   {'_', Tile{'-', 0, "stairs", TCODColor::darkGrey, TCODColor::black}},
   {'>', Tile{'>', 0, "stairs leading up", TCODColor::yellow, TCODColor::black}},
   {'<', Tile{'<', 0, "stairs leading down", TCODColor::yellow, TCODColor::black}},
 
-  {'T', Tile{'T', 0, "table", TCODColor::darkSepia, TCODColor::darkestSepia}},
-  {'#', Tile{'#', 0, "couch", TCODColor::black, TCODColor::darkSepia}},
+  {'T', Tile{'T', TILE_DESTRUCTIBLE, "table", TCODColor::darkSepia, TCODColor::darkestSepia}},
+  {'C', Tile{'#', TILE_DESTRUCTIBLE, "couch", TCODColor::black, TCODColor::darkSepia}},
   
-  {'o', Tile{'o', 0, "toilet", TCODColor::white, TCODColor::darkGrey}},
-  {'s', Tile{'s', 0, "sink", TCODColor::white, TCODColor::darkGrey}},
+  {'o', Tile{'o', TILE_DESTRUCTIBLE, "toilet", TCODColor::white, TCODColor::darkGrey}},
+  {'s', Tile{'s', TILE_DESTRUCTIBLE, "sink", TCODColor::white, TCODColor::darkGrey}},
   
   {'[', Tile{'[', TILE_LOCKED, "locked door", TCODColor::white, TCODColor::black}},
   {']', Tile{']', TILE_CLOSED, "closed door", TCODColor::white, TCODColor::black}},
-  {'/', Tile{'/', 0, "open door", TCODColor::white, TCODColor::black}},
+  {'/', Tile{'/', TILE_OPEN, "open door", TCODColor::white, TCODColor::black}},
   
   {'-', Tile{'-', 0, "wooden flooring", TCODColor::lightGrey, TCODColor::darkestGrey}},
   {'0', Tile{' ', 0, "marble flooring", TCODColor::darkGrey, TCODColor::darkGrey}},
@@ -33,19 +36,82 @@ map<char,Tile> tileDefs = {
 };
 
 map<string,Item> itemDefs = {
-  {"apartment keys", Item{',', 0, "apartment keys", 10, TCODColor::white, TCODColor::black}},
-  {"1 euro coin", Item{'.', 0, "1 euro coin", 5, TCODColor::yellow, TCODColor::black}},
-  {"cigarette butt", Item{'.', 0, "cigarette butt", 2, TCODColor::lightSepia, TCODColor::black}},
-  {"empty blister of ibuprofen", Item{',', 0, "empty blister of ibuprofen", 2, TCODColor::lightGrey, TCODColor::black}},
-  {"newspaper", Item{'n', 0, "newspaper", 2, TCODColor::lightGrey, TCODColor::black}},
-  {"ballpen", Item{'.', 0, "ballpen", 2, TCODColor::lightGreen, TCODColor::black}},
-  {"cup", Item{'u', 0, "cup", 2, TCODColor::lightGrey, TCODColor::black}},
-  {"plate", Item{'_', 0, "plate", 2, TCODColor::white, TCODColor::black}},
-  {"book", Item{'_', 0, "book", 2, TCODColor::darkGrey, TCODColor::black}},
-  {"ibuprofen", Item{'.', 0, "ibuprofen", 2, TCODColor::white, TCODColor::black}},
-  {"quetiapine", Item{'.', 0, "quetiapine", 2, TCODColor::orange, TCODColor::black}},
-  {"jeans", Item{'n', 0, "jeans", 2, TCODColor::blue, TCODColor::black}},
-  {"t-shirt", Item{'T', 0, "t-shirt", 2, TCODColor::white, TCODColor::black}},
+  {"apartment keys", 
+    Item{',', 0, "apartment keys", 
+      10, 1, 0, 0, 0,
+      TCODColor::white, TCODColor::black}},
+  {"1 euro coin", 
+    Item{'.', 0, "1 euro coin", 
+      5, 0, 0, 0, 0,
+      TCODColor::yellow, TCODColor::black}},
+  {"cigarette butt", 
+    Item{'.', 0, "cigarette butt", 
+      2, 0, 0, 0, 0,
+      TCODColor::lightSepia, TCODColor::black}},
+  {"empty blister of ibuprofen", 
+    Item{',', 0, "empty blister of ibuprofen", 
+      2, 0, 0, 0, 0,
+      TCODColor::lightGrey, TCODColor::black}},
+  {"newspaper", 
+    Item{'n', 0, "newspaper", 
+      50, 0, 1, 1, 0,
+      TCODColor::lightGrey, TCODColor::black}},
+  {"ballpen", 
+    Item{'.', 0, "ballpen", 
+      8, 2, 0, 0, 0,
+      TCODColor::lightGreen, TCODColor::black}},
+  {"mug", 
+    Item{'u', 0, "mug", 
+      100, 1, 0, 0, 0,
+      TCODColor::lightGrey, TCODColor::black}},
+  {"plate", 
+    Item{'_', 0, "plate", 
+      100, 1, 0, 0, 0,
+      TCODColor::white, TCODColor::black}},
+  {"phonebook", 
+    Item{'_', 0, "phonebook", 
+      250, 1, 0, 1, 0,
+      TCODColor::darkGrey, TCODColor::black}},
+  {"ibuprofen", 
+    Item{'.', 0, "ibuprofen", 
+      2, 0, 0, 0, 0,
+      TCODColor::white, TCODColor::black}},
+  {"apple", 
+    Item{'o', 0, "apple", 
+      75, 0, 0, 3, 0,
+      TCODColor::green, TCODColor::black}},
+  {"tomato", 
+    Item{'o', 0, "tomato", 
+      75, 0, 0, 2, 0,
+      TCODColor::red, TCODColor::black}},
+  {"slice of white bread", 
+    Item{'n', 0, "slice of white bread", 
+      30, 0, 0, 2, 0,
+      TCODColor::white, TCODColor::black}},
+  {"blue jeans", 
+    Item{'n', 0, "blue jeans", 
+      800, 0, 3, 0, 0,
+      TCODColor::blue, TCODColor::black}},
+  {"black jeans", 
+    Item{'n', 0, "black jeans", 
+      800, 0, 4, 0, 0,
+      TCODColor::black, TCODColor::lightGrey}},
+  {"t-shirt", 
+    Item{'T', 0, "t-shirt", 
+      300, 0, 1, 0, 0,
+      TCODColor::white, TCODColor::black}},
+  {"kitchen knife", 
+    Item{'k', 0, "kitchen knife", 
+      300, 3, 0, 0, 0,
+      TCODColor::silver, TCODColor::black}},
+  {"baseball bat", 
+    Item{'b', 0, "baseball bat", 
+      1000, 3, 0, 0, 0,
+      TCODColor::silver, TCODColor::black}},
+  {"steelcap doc martens", 
+    Item{'k', 0, "steelcap doc martens", 
+      1000, 0, 2, 0, 0,
+      TCODColor::silver, TCODColor::black}},
 };
 
 Tile Tile::unlock() {
@@ -58,6 +124,30 @@ Tile Tile::unlock() {
 Tile Tile::open() {
   if (name == "closed door") {
     return tileDefs.at('/');
+  }
+  return *this;
+}
+
+Tile Tile::close() {
+  if (name == "open door") {
+    return tileDefs.at(']');
+  }
+  return *this;
+}
+
+Tile Tile::lock() {
+  if (name == "open door" || name == "closed door") {
+    return tileDefs.at('[');
+  }
+  return *this;
+}
+
+Tile Tile::destroy() {
+  if (flags & TILE_DESTRUCTIBLE) {
+    if (name == "window") {
+      return tileDefs.at(';');
+    }
+    return tileDefs.at(','); // rubble
   }
   return *this;
 }
@@ -108,7 +198,7 @@ void Zone::load(string filename) {
   int mode = ZL_TILES;
 
   for (string line; getline(input, line);) {
-    printf("[Zone] Read line: %s\n",line.c_str());
+    //printf("[Zone] Read line: %s\n",line.c_str());
 
     if (line=="!items") {
       mode = ZL_ITEMS;
@@ -153,7 +243,7 @@ void Zone::load(string filename) {
         int tx = atoi(parts.at(3).c_str());
         int ty = atoi(parts.at(4).c_str());
 
-        printf("Adding Teleport to %s at %d:%d.\n", zoneId.c_str(), x, y);
+        //printf("Adding Teleport to %s at %d:%d.\n", zoneId.c_str(), x, y);
         Teleport* t = new Teleport{x,y,zoneId,tx,ty};
 
         teleports.push_back(t);
@@ -194,33 +284,54 @@ void Zone::generateHouses(int ox, int oy, int w, int h, int mind, int maxdx, int
 
             string items[] = {
               "ballpen",
-              "cup",
+              "mug",
               "plate",
-              "book",
-              "ibuprofen", 
-              "quetiapine",
-              "jeans",
-              "t-shirt"
+              "phonebook",
+              "ibuprofen",
+              "blue jeans",
+              "black jeans",
+              "steelcap doc martens",
+              "t-shirt",
+              "tomato",
+              "apple",
+              "slice of white bread",
+              "kitchen knife",
+              "baseball bat"
             };
 
-            const int itemCount = 8;
+            const int itemCount = sizeof(items)/sizeof(*items);
             const int itemR = rand()%(itemCount+80);
             if (itemR<itemCount) {
-              ZoneItem zi = ZoneItem{hx,hy,itemDefs.at(items[itemR])};
+
+              //printf("item: %d %s\n",itemR,items[itemR].c_str());
+
+              Item item = itemDefs.at(items[itemR]);
+
+              ZoneItem zi = ZoneItem{hx,hy,item};
               zoneItems.push_back(zi);
             }
           }
         }
 
+        int WINDOW_CHANCE = 8;
+
         // house rect
         for (int hx=x1; hx<=x2; hx++) {
-          mutate(hx,y1,tileDefs.at('='));
-          mutate(hx,y2,tileDefs.at('='));
+          auto tile = tileDefs.at('=');
+          if (rand()%10>WINDOW_CHANCE) tile = tileDefs.at('#');
+          mutate(hx,y1,tile);
+          tile = tileDefs.at('=');
+          if (rand()%10>WINDOW_CHANCE) tile = tileDefs.at('#');
+          mutate(hx,y2,tile);
         }
 
         for (int hy=y1; hy<=y2; hy++) {
-          mutate(x1,hy,tileDefs.at('|'));
-          mutate(x2,hy,tileDefs.at('|'));
+          auto tile = tileDefs.at('|');
+          if (rand()%10>WINDOW_CHANCE) tile = tileDefs.at('#');
+          mutate(x1,hy,tile);
+          tile = tileDefs.at('|');
+          if (rand()%10>WINDOW_CHANCE) tile = tileDefs.at('#');
+          mutate(x2,hy,tile);
         }
 
         // corners
@@ -239,7 +350,7 @@ void Zone::generateHouses(int ox, int oy, int w, int h, int mind, int maxdx, int
 
 void Zone::generate(char zoneType) {
 
-  printf("[Zone] generating zone of type %c\n",zoneType);
+  //printf("[Zone] generating zone of type %c\n",zoneType);
 
   for (int y=0; y<height; y++) {
     for (int x=0; x<width; x++) {
@@ -266,7 +377,6 @@ void Zone::generate(char zoneType) {
     generateHouses(width/2+roadWidth/2,height/2+roadWidth/2,width/2-roadWidth/2,height/2-roadWidth/2,1,1,1);
   }
 
-
   if (zoneType=='|' || zoneType=='+') {
     for (int y=0; y<height; y++) {
       for (int x=width/2-roadWidth/2; x<width/2+roadWidth/2; x++) {
@@ -274,7 +384,6 @@ void Zone::generate(char zoneType) {
       }
     }
   }
-
 
   if (zoneType=='-' || zoneType=='+') {
 
@@ -289,6 +398,8 @@ void Zone::generate(char zoneType) {
     // generate residential houses
     generateHouses(0,0,width,height,1,3,3);
   }
+
+  updateTcodMap();
 }
 
 vector<ZoneItem> Zone::getZoneItems() {
@@ -333,6 +444,27 @@ void Zone::eraseItem(int x, int y, string itemId) {
     }
     idx++;
   }
+}
+
+void Zone::updateTcodMap() {
+  this->tcodMap = new TCODMap(this->width, this->height);
+
+  for (int x=0; x<this->width; x++) {
+    for (int y=0; y<this->height; y++) {
+      Tile t = this->tileAt(x,y);
+
+      bool walkable = !(t.flags & (TILE_BLOCKS|TILE_CLOSED|TILE_LOCKED));
+
+      this->tcodMap->setProperties(x, y, walkable, walkable);
+    }
+  }
+}
+
+TCODMap* Zone::getTcodMap() {
+  if (!this->tcodMap) {
+    updateTcodMap();
+  }
+  return this->tcodMap;
 }
 
 Zone::~Zone() {

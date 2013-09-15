@@ -1,6 +1,7 @@
 #ifndef MB_ZONE_H
 #define MB_ZONE_H
 
+#include "libtcod.hpp"
 #include <string>
 #include <vector>
 #include <sstream>
@@ -9,11 +10,13 @@
 #include <stdio.h>
 #include <assert.h>
 #include <cstdlib>
-#include "libtcod.hpp"
+#include "Item.h"
 
 #define TILE_BLOCKS 1
 #define TILE_LOCKED 2
 #define TILE_CLOSED 4
+#define TILE_OPEN 8
+#define TILE_DESTRUCTIBLE 16
 
 #define ITEM_WEAPON 1
 #define ITEM_FOOD 2
@@ -26,16 +29,6 @@ struct Teleport {
   string zoneId;
   int targetX;
   int targetY;
-};
-
-struct Item {
-  unsigned char consoleChar;
-  unsigned int flags;
-  string name;
-  int weight;
-
-  TCODColor fg;
-  TCODColor bg;
 };
 
 struct ZoneItem {
@@ -53,6 +46,9 @@ struct Tile {
 
   Tile unlock();
   Tile open();
+  Tile close();
+  Tile lock();
+  Tile destroy();
 };
 
 class Zone {
@@ -61,6 +57,8 @@ class Zone {
   vector<Teleport*> teleports;
   Tile* tiles;
   vector<ZoneItem> zoneItems;
+
+  TCODMap* tcodMap;
 
 public:
   string title;
@@ -79,6 +77,9 @@ public:
   void eraseItem(int x, int y, string itemId);
 
   void generateHouses(int ox, int oy, int w, int h, int mind, int maxdx, int maxdy);
+
+  void updateTcodMap();
+  TCODMap* getTcodMap();
 };
 
 #endif

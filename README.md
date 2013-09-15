@@ -58,7 +58,10 @@ Playing
 
 - cursor keys to move
 - t key to take items
-- u key to use items from inventory
+- u key to use items from inventory (also use for eating)
+- m key to manipulate (close doors)
+- s key to smash (windows)
+- S key to sleep
 
 License
 -------
