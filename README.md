@@ -62,6 +62,10 @@ Playing
 - m key to manipulate (close doors)
 - s key to smash (windows)
 - S key to sleep
+- w key to wield/wear
+
+Hint to survive:
+Find your way out of the apartment and go north in the staircase. Then immediately go left. Don't waste time, find food quickly and eat it. Find clothes and weapons. Find more food. Don't starve!
 
 License
 -------
