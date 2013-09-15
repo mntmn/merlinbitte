@@ -73,7 +73,7 @@ void renderInventory() {
 	int y = 2;
 	int idx = 0;
 	for (Item item : inventory) {
-		tc.print(SCREEN_WIDTH-20,y++, (to_string(idx++)+": "+item.name).c_str());
+		tc.print(SCREEN_WIDTH-20,y++, (std::to_string(idx++)+": "+item.name).c_str());
 	}
 }
 
