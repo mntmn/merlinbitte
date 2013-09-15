@@ -172,7 +172,7 @@ void renderStats() {
 void initTCod() {
   auto fullscreen = false;
 
-  const char *font="data/fonts/consolas8x8_gs_tc.png";
+  const char *font="data/fonts/consolas12x12_gs_tc.png";
 
   int fontFlags=TCOD_FONT_TYPE_GREYSCALE|TCOD_FONT_LAYOUT_TCOD, fontNewFlags=0;
 
