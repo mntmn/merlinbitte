@@ -19,10 +19,7 @@ all : debug
 
 debug : $(PROGNAME)
 
-$(TEMP) :
-	\mkdir -p $@
-
-$(PROGNAME) : $(TEMP) $(C_OBJS_DEBUG)
+$(PROGNAME) : $(C_OBJS_DEBUG)
 	$(CPP) $(C_OBJS_DEBUG) $(CFLAGS) -o $@ $(LDFLAGS) $(CFLAGS) -Wl,-rpath,.
 
 clean :
