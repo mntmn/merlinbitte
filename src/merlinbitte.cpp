@@ -1,9 +1,10 @@
 #include <string>
+#include <string.h>
 #include <map>
 #include <vector>
-#include "libtcod.hpp"
 #include "Zone.h"
 #include "Critter.h"
+#include <GL/glut.h>
 
 #define SCREEN_WIDTH 80
 #define SCREEN_HEIGHT 60
@@ -20,8 +21,6 @@
 #define HSTATE_DEAD 666
 
 using namespace std;
-
-TCODConsole tc(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 map<string, Zone*> zones;
 Zone* currentZone;
@@ -47,7 +46,7 @@ vector<string> moveCritters(Zone* playerZone) {
 
     if (c->zone == playerZone) {
 
-      auto path = new TCODPath(playerZone->getTcodMap(), 1.0f); 
+      /*auto path = new TCODPath(playerZone->getTcodMap(), 1.0f); 
       if (path->compute(c->x, c->y, hero.x, hero.y)) {
 
         // trial against willpower
@@ -69,7 +68,7 @@ vector<string> moveCritters(Zone* playerZone) {
             c->y = nextY;
           }
         }
-      }
+      }*/
     }
   }
 
@@ -79,21 +78,19 @@ vector<string> moveCritters(Zone* playerZone) {
 void renderCritters(Zone* zone) {
   for (Critter* c : critters) {
     if (c->zone == zone) {
-      tc.putCharEx(c->x, c->y + yOffset, c->consoleChar, c->fg, c->bg);
+      //tc.putCharEx(c->x, c->y + yOffset, c->consoleChar, c->fg, c->bg);
     }
   }
 }
 
 void renderZone(Zone* zone) {
-  tc.clear();
-  tc.setDefaultForeground(TCODColor::white);
 
   // tiles
   for (int y = 0; y < SCREEN_HEIGHT-yOffset; y++) {
     for (int x = 0; x < SCREEN_WIDTH; x++) {
       Tile t = zone->tileAt(x, y);
       if (t.consoleChar>0) {
-        tc.putCharEx(x, y + yOffset, t.consoleChar, t.fg, t.bg);
+        //tc.putCharEx(x, y + yOffset, t.consoleChar, t.fg, t.bg);
       }
     }
   }
@@ -101,34 +98,28 @@ void renderZone(Zone* zone) {
   // items
   for (ZoneItem zi : zone->getZoneItems()) {
     Item item = zi.item;
-    tc.putCharEx(zi.x, zi.y+yOffset, item.consoleChar, item.fg, item.bg);
+    //tc.putCharEx(zi.x, zi.y+yOffset, item.consoleChar, item.fg, item.bg);
   }
 
-  tc.setDefaultForeground(TCODColor::white);
-
-  tc.putChar(hero.x,hero.y+yOffset,'@',TCOD_BKGND_NONE);
+  //tc.putChar(hero.x,hero.y+yOffset,'@',TCOD_BKGND_NONE);
 
   auto playerTile = zone->tileAt(hero.x,hero.y);
 
-  tc.print(1,1,zone->title.c_str());
-  tc.print(20,1,playerTile.name.c_str());
+  //tc.print(1,1,zone->title.c_str());
+  //tc.print(20,1,playerTile.name.c_str());
 
   renderCritters(zone);
 }
 
 void renderMessages(vector<string>* messages) {
-  tc.setDefaultForeground(TCODColor::white);
-
   int y = SCREEN_HEIGHT-MAX_CONSOLE_MSGS-1;
   for (string m : *messages) {
-    tc.print(1,y++,m.c_str());
+    //tc.print(1,y++,m.c_str());
   }
 }
 
 void renderInventory() {
-  tc.setDefaultForeground(TCODColor::white);
-
-  tc.print(SCREEN_WIDTH-20,1,"Inventory");
+  //tc.print(SCREEN_WIDTH-20,1,"Inventory");
   int y = 2;
   int idx = 0;
   for (Item item : inventory) {
@@ -142,23 +133,21 @@ void renderInventory() {
         }
       }
     }
-    tc.print(SCREEN_WIDTH-20,y++, (to_string(idx++)+": "+mod+item.name).c_str());
+    //tc.print(SCREEN_WIDTH-20,y++, (to_string(idx++)+": "+mod+item.name).c_str());
   }
 }
 
 void renderStats() {
-  tc.setDefaultForeground(TCODColor::white);
-
   int x = SCREEN_WIDTH-35;
 
-  tc.print(x,1,"Stats");
+  //tc.print(x,1,"Stats");
 
   int minutesTotal = turn/5;
   int hoursTotal = (minutesTotal/60);
   int hours = hoursTotal%24;
   int day = hoursTotal/24 + 1;
 
-  tc.print(x,3,(string("Day ") + to_string(day) + " " + to_string(hoursTotal%24) + ":" + to_string(minutesTotal%60)).c_str());
+  /*tc.print(x,3,(string("Day ") + to_string(day) + " " + to_string(hoursTotal%24) + ":" + to_string(minutesTotal%60)).c_str());
   tc.print(x,4,(string("Health: ") + to_string(hero.health)).c_str());
   tc.print(x,5,(string("INT: ") + to_string(hero.intelligence)).c_str());
   tc.print(x,6,(string("STR: ") + to_string(hero.strength)).c_str());
@@ -166,24 +155,7 @@ void renderStats() {
   tc.print(x,8,(string("WPR: ") + to_string(hero.willpower)).c_str());
 
   tc.print(x,10,(string("ARM: ") + to_string(hero.armorValue())).c_str());
-  tc.print(x,11,(string("DMG: ") + to_string(hero.damageValue())).c_str());
-}
-
-void initTCod() {
-  auto fullscreen = false;
-
-  const char *font="data/fonts/consolas12x12_gs_tc.png";
-
-  int fontFlags=TCOD_FONT_TYPE_GREYSCALE|TCOD_FONT_LAYOUT_TCOD, fontNewFlags=0;
-
-  TCODConsole::setCustomFont(font,fontFlags,0,0);
-
-  TCODConsole::initRoot(SCREEN_WIDTH,SCREEN_HEIGHT,"merlin bitte",fullscreen,TCOD_RENDERER_SDL);
-
-  TCODConsole::root->setDefaultForeground(TCODColor::white);
-  TCODConsole::root->setDefaultBackground(TCODColor::lightBlue);
-
-  TCODSystem::setFps(30);
+  tc.print(x,11,(string("DMG: ") + to_string(hero.damageValue())).c_str());*/
 }
 
 void initZones() {
@@ -333,6 +305,7 @@ Zone* getZone(string zoneName) {
   return zones.at(zoneName);
 }
 
+/*
 int getKeyX(TCOD_key_t key) {
   if (key.vk == TCODK_LEFT) return -1;
   if (key.vk == TCODK_RIGHT) return 1;
@@ -343,9 +316,9 @@ int getKeyY(TCOD_key_t key) {
   if (key.vk == TCODK_UP) return -1;
   if (key.vk == TCODK_DOWN) return 1;
   return 0;
-}
+}*/
 
-vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
+vector<string> processInput() {
 
   vector<string> responses;
 
@@ -354,6 +327,8 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
   bool moveHero = false;
 
   int prevTurn = turn;
+
+  int keyCode = 0;
 
   if (heroState == HSTATE_SLEEP) {
     hero.sleepTurns--;
@@ -376,10 +351,10 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
   } else if (heroState == HSTATE_MOVE) {
     // move state
 
-    newHeroY += getKeyY(key);
-    newHeroX += getKeyX(key);
+    //newHeroY += getKeyY(key);
+    //newHeroX += getKeyX(key);
 
-    if (key.c == 't') {
+    if (keyCode == 't') {
       // take item
       vector<Item> heroItems = currentZone->itemsAt(hero.x, hero.y);
       for (Item item : heroItems) {
@@ -391,32 +366,32 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
       turn++;
     }
 
-    if (key.c == 'u') {
+    if (keyCode == 'u') {
       // use item
       responses.push_back(string("Which item do you want to use? (0-9)"));
       heroState = HSTATE_USE_SELECT;
     }
 
-    if (key.c == 'm') {
+    if (keyCode == 'm') {
       // manipulate tile
       responses.push_back(string("What do you want to manipulate (direction)?"));
       heroState = HSTATE_MANIPULATE_DIRECTION;
     }
 
-    if (key.c == 's') {
+    if (keyCode == 's') {
       // smash tile
       responses.push_back(string("What do you want to smash (direction)?"));
       heroState = HSTATE_SMASH_DIRECTION;
     }
 
-    if (key.c == 'S') {
+    if (keyCode == 'S') {
       // smash tile
       responses.push_back(string("You fall asleep..."));
       heroState = HSTATE_SLEEP;
       hero.sleepTurns = 10;
     }
 
-    if (key.c == 'w') {
+    if (keyCode == 'w') {
       // manipulate tile
       responses.push_back(string("What do you want wield/wear (0-9)?"));
       heroState = HSTATE_WIELD_SELECT;
@@ -424,8 +399,8 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
 
   } else if (heroState == HSTATE_USE_SELECT) {
 
-    if (key.c >= '0' && key.c <= '9') {
-      int itemNumber = key.c - '0';
+    if (keyCode >= '0' && keyCode <= '9') {
+      int itemNumber = keyCode - '0';
 
       if (inventory.size()<=itemNumber) {
         responses.push_back(string("No such item."));
@@ -452,8 +427,8 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
 
   } else if (heroState == HSTATE_WIELD_SELECT) {
 
-    if (key.c >= '0' && key.c <= '9') {
-      int itemNumber = key.c - '0';
+    if (keyCode >= '0' && keyCode <= '9') {
+      int itemNumber = keyCode - '0';
 
       if (inventory.size()<=itemNumber) {
         responses.push_back(string("No such item."));
@@ -486,8 +461,8 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
     int useX = hero.x;
     int useY = hero.y;
 
-    useY += getKeyY(key);
-    useX += getKeyX(key);
+    //useY += getKeyY(key);
+    //useX += getKeyX(key);
 
     if (useX!=hero.x || useY!=hero.y) {
       Item useItem = inventory.at(selectedItemId);
@@ -508,8 +483,8 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
     int useX = hero.x;
     int useY = hero.y;
 
-    useY += getKeyY(key);
-    useX += getKeyX(key);
+    //useY += getKeyY(key);
+    //useX += getKeyX(key);
 
     if (useX!=hero.x || useY!=hero.y) {
 
@@ -520,15 +495,15 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
         Tile closedTile = useTile.close();
 
         currentZone->mutate(useX, useY, closedTile);
-        currentZone->updateTcodMap();
+        //currentZone->updateTcodMap();
       }
 
       heroState = HSTATE_MOVE;
       turn++;
     }
   } else if (heroState == HSTATE_SMASH_DIRECTION) {
-    int useX = hero.x + getKeyX(key);
-    int useY = hero.y + getKeyY(key);
+    int useX = hero.x; // + getKeyX(key);
+    int useY = hero.y; // + getKeyY(key);
 
     if (useX!=hero.x || useY!=hero.y) {
       Tile useTile = currentZone->tileAt(useX, useY);
@@ -538,7 +513,7 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
         Tile smashedTile = useTile.destroy();
 
         currentZone->mutate(useX, useY, smashedTile);
-        currentZone->updateTcodMap();
+        //currentZone->updateTcodMap();
       } else {
         responses.push_back(string("You can't seem to destroy the ") + useTile.name + string("."));
       }
@@ -547,7 +522,7 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
       turn++;
     }
   } else if (heroState == HSTATE_DEAD) {
-    if (key.c == 'r') {
+    if (keyCode == 'r') {
       restart();
       return responses;
     }
@@ -562,7 +537,7 @@ vector<string> processInput(TCOD_key_t key, TCOD_mouse_t mouse) {
     Tile openedTile = newHeroTile.open();
     
     currentZone->mutate(newHeroX, newHeroY, openedTile);
-    currentZone->updateTcodMap();
+    //currentZone->updateTcodMap();
     turn++;
   } else {
     moveHero = true;
@@ -678,34 +653,165 @@ void restart() {
   heroState = HSTATE_MOVE;
 }
 
-extern "C" int SDL_main(int argc, char** argv) {
-  initTCod();
+GLuint vShaderProg;
+GLuint vShaderOb;
+GLuint fShaderOb;
 
-  TCOD_key_t key{TCODK_NONE,0};
-  TCOD_mouse_t mouse;
+void compileShader(const GLchar* text, GLuint shob, GLuint shprog) {
 
+  GLint success;
+  GLchar glLog[1024];
+
+  const GLchar* p[1];
+  p[0] = text;
+  GLint lengths[1];
+  lengths[0] = strlen(text);
+  glShaderSource(shob, 1, p, lengths);
+
+  glCompileShader(shob);
+
+  glGetShaderiv(shob, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(shob, sizeof(glLog), NULL, glLog);
+    fprintf(stderr, "Error compiling shader: '%s'\n", glLog);
+    exit(1);
+  }
+
+  glAttachShader(shprog, shob);
+}
+
+void initShaders() {
+  vShaderProg = glCreateProgram();
+  vShaderOb = glCreateShader(GL_VERTEX_SHADER);
+  compileShader("\n\
+    #version 300 es\n\
+    layout(location = 0) in vec4 pos;\n\
+    out float tile;\n\
+    void main() {\n\
+      gl_Position = vec4(pos.x-0.75, (1.0-pos.y)-0.5, pos.z, 1.0);\n\
+      tile = pos.w;\n\
+    }\n\
+    ", vShaderOb, vShaderProg);
+
+  //fShaderProg = glCreateProgram();
+  fShaderOb = glCreateShader(GL_FRAGMENT_SHADER);
+  compileShader("\n\
+    #version 300 es\n\
+    precision lowp float;\n\
+    out vec4 color;\n\
+    in float tile;\n\
+    void main(void) {\n\
+      vec2 res = vec2(1024.0,768.0);\n\
+      color = vec4(0,0, tile/128.0, 1.0);\n\
+    }\n\
+    ", fShaderOb, vShaderProg);
+
+
+  GLint success;
+  GLchar glLog[1024];
+  glLinkProgram(vShaderProg);
+
+  glGetProgramiv(vShaderProg, GL_LINK_STATUS, &success);
+  if (success == 0) {
+    glGetProgramInfoLog(vShaderProg, sizeof(glLog), NULL, glLog);
+    fprintf(stderr, "Error linking shader program: '%s'\n", glLog);
+    exit(1);
+  }
+
+  glValidateProgram(vShaderProg);
+
+  glUseProgram(vShaderProg);
+}
+
+
+#define NUM_TILE_VECS SCREEN_WIDTH*SCREEN_HEIGHT*4
+Vector4f tileVecs[NUM_TILE_VECS];
+
+
+void renderScene() {
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  float z = 0.0f;
+  float tw = 0.02f;
+  float th = 0.02f;
+  float pad = 0.005f;
+
+  for (int y = 0; y < SCREEN_HEIGHT; y++) {
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+      Tile t = currentZone->tileAt(x, y);
+      //if (t!=NULL) {
+        //t.consoleChar;
+      //}
+
+      float c = (float)t.consoleChar;
+
+      int o = (y*SCREEN_WIDTH + x)*4;
+
+      tileVecs[o+0] = {tw*x,th*y,z, c};
+      tileVecs[o+1] = {tw*x+tw-pad,th*y,z, c};
+      tileVecs[o+2] = {tw*x+tw-pad,th*y+th-pad,z, c};
+      tileVecs[o+3] = {tw*x,th*y+th-pad,z, c};
+    }
+  }
+
+  GLuint vbo;
+  glGenBuffers(1, &vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(tileVecs), tileVecs, GL_STATIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+  glDrawArrays(GL_QUADS, 0, NUM_TILE_VECS);
+
+  glDisableVertexAttribArray(0);
+
+  glutSwapBuffers();
+}
+
+void handleMouseMove(int x, int y) {
+  
+}
+
+int main(int argc, char** argv) {
+
+  glutInit(&argc, argv);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+  glutInitWindowSize(1024, 768);
+  glutInitWindowPosition(100, 100);
+  glutCreateWindow("merlinbitte");
+
+
+  GLenum res = glewInit();
+  if (res != GLEW_OK)
+  {
+      fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
+      return 1;
+  }
+
+  initShaders();
+
+  glutDisplayFunc(renderScene);
+  
   restart();
 
-  while (!TCODConsole::isWindowClosed()) {
+  glutMainLoop();
+
+  while (true) {
     renderZone(currentZone);
     renderMessages(&consoleMessages);
     renderInventory();
     renderStats();
-    TCODConsole::blit(&tc,0,0,SCREEN_WIDTH,SCREEN_HEIGHT, 
-      TCODConsole::root,0,0);
 
-    TCODConsole::flush();
-
-    TCODSystem::checkForEvent((TCOD_event_t)(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE),&key,&mouse);
-
-    auto newMessages = processInput(key, mouse);
+    /*auto newMessages = processInput();
     for (string msg : newMessages) {
       consoleMessages.push_back(msg);
 
       if (consoleMessages.size() > MAX_CONSOLE_MSGS) {
         consoleMessages.erase(consoleMessages.begin()+consoleMessages.size()-MAX_CONSOLE_MSGS);
       }
-    }
+    }*/
   }
 
   return 0;

@@ -1,9 +1,9 @@
 #ifndef MB_CRITTER_H
 #define MB_CRITTER_H
 
-#include "libtcod.hpp"
 #include <string>
 #include "Zone.h"
+#include "TDO.h"
 
 #define NUM_CRITTER_TEMPLATES 5
 #define MAX_WILLPOWER 10
@@ -35,8 +35,7 @@ public:
   int thirstLevel;
 
   unsigned char consoleChar;
-  TCODColor fg;
-  TCODColor bg;
+  TDO* tdo;
 
   std::vector<Item> weapons;
   std::vector<Item> clothes;

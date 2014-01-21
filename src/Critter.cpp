@@ -19,8 +19,6 @@ Critter::Critter(Zone* zone, int x, int y, int templateId) {
       agility = 2;
       willpower = 1;
       consoleChar = 'Z';
-      fg = TCODColor::darkRed;
-      bg = TCODColor::black;
       break;
     case 1:
       name = "Neonazi Scum";
@@ -30,8 +28,6 @@ Critter::Critter(Zone* zone, int x, int y, int templateId) {
       agility = 2;
       willpower = 3;
       consoleChar = 'N';
-      fg = TCODColor::white;
-      bg = TCODColor::lightRed;
       break;
     case 2:
       name = "Neonazi Ueberscum";
@@ -41,8 +37,6 @@ Critter::Critter(Zone* zone, int x, int y, int templateId) {
       agility = 1;
       willpower = 3;
       consoleChar = 'N';
-      fg = TCODColor::white;
-      bg = TCODColor::darkRed;
       break;
     case 3:
       name = "Drunk Tourist";
@@ -52,8 +46,6 @@ Critter::Critter(Zone* zone, int x, int y, int templateId) {
       agility = 1;
       willpower = 1;
       consoleChar = 'T';
-      fg = TCODColor::white;
-      bg = TCODColor::blue;
       break;
     case 4:
       name = "Tilidinized Mouthfoamer";
@@ -63,8 +55,6 @@ Critter::Critter(Zone* zone, int x, int y, int templateId) {
       agility = 1;
       willpower = 5;
       consoleChar = 'M';
-      fg = TCODColor::white;
-      bg = TCODColor::darkSepia;
       break;
   }
 

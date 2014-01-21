@@ -1,12 +1,11 @@
-# merlinbitte Mac OSX makefile
+# merlinbitte Linux makefile
 SRCDIR=./src
 INCDIR=include
-TCODINCLUDE=../libtcod/include
-CFLAGS=$(FLAGS) -I$(INCDIR) -I$(TCODINCLUDE) -I$(SRCDIR)
-LDFLAGS= -lSDL -L../libtcod -ltcod_debug -ltcodxx_debug -lm 
+CFLAGS=$(FLAGS) -I$(INCDIR) -I$(SRCDIR)
+LDFLAGS= -lGL -lglut -lGLEW
 CC=gcc
 CPP=g++ -std=c++11
-PROGNAME=merlinbitte_linux
+PROGNAME=merlinbitte
 CPP_FILES := $(wildcard src/*.cpp)
 OBJ_FILES := $(patsubst src/%.cpp,obj/%.o,$(CPP_FILES))
 .SUFFIXES: .o .h .c .hpp .cpp .m
@@ -14,10 +13,7 @@ OBJ_FILES := $(patsubst src/%.cpp,obj/%.o,$(CPP_FILES))
 obj/%.o : $(SRCDIR)/%.cpp
 	$(CPP) $(CFLAGS) -g -o $@ -c $< 
 
-obj/linux_glue.o : $(SRCDIR)/linux_glue.c
-	$(CC) $(CFLAGS) -g -o $@ -c $<
-
-C_OBJS_DEBUG=$(OBJ_FILES) obj/linux_glue.o
+C_OBJS_DEBUG=$(OBJ_FILES)
 
 all : debug
 

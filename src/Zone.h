@@ -1,7 +1,6 @@
 #ifndef MB_ZONE_H
 #define MB_ZONE_H
 
-#include "libtcod.hpp"
 #include <string>
 #include <vector>
 #include <sstream>
@@ -10,6 +9,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <cstdlib>
+#include "TDO.h"
 #include "Item.h"
 
 #define TILE_BLOCKS 1
@@ -41,8 +41,7 @@ struct Tile {
   unsigned char consoleChar;
   unsigned int flags;
   string name;
-  TCODColor fg;
-  TCODColor bg;
+  TDO* tdo;
 
   Tile unlock();
   Tile open();
@@ -58,7 +57,7 @@ class Zone {
   Tile* tiles;
   vector<ZoneItem> zoneItems;
 
-  TCODMap* tcodMap;
+  //TCODMap* tcodMap;
 
 public:
   string title;
@@ -78,8 +77,8 @@ public:
 
   void generateHouses(int ox, int oy, int w, int h, int mind, int maxdx, int maxdy);
 
-  void updateTcodMap();
-  TCODMap* getTcodMap();
+  //void updateTcodMap();
+  //TCODMap* getTcodMap();
 };
 
 #endif
