@@ -684,9 +684,9 @@ void initShaders() {
   vShaderProg = glCreateProgram();
   vShaderOb = glCreateShader(GL_VERTEX_SHADER);
   compileShader("\n\
-    #version 300 es\n\
-    layout(location = 0) in vec4 pos;\n\
-    out float tile;\n\
+    #version 100\n\
+    attribute vec4 pos;\n\
+    varying float tile;\n\
     void main() {\n\
       gl_Position = vec4(pos.x-0.75, (1.0-pos.y)-0.5, pos.z, 1.0);\n\
       tile = pos.w;\n\
@@ -696,13 +696,12 @@ void initShaders() {
   //fShaderProg = glCreateProgram();
   fShaderOb = glCreateShader(GL_FRAGMENT_SHADER);
   compileShader("\n\
-    #version 300 es\n\
+    #version 100\n\
     precision lowp float;\n\
-    out vec4 color;\n\
-    in float tile;\n\
+    varying float tile;\n\
     void main(void) {\n\
       vec2 res = vec2(1024.0,768.0);\n\
-      color = vec4(0,0, tile/128.0, 1.0);\n\
+      gl_FragColor = vec4(0,0, tile/128.0, 1.0);\n\
     }\n\
     ", fShaderOb, vShaderProg);
 
