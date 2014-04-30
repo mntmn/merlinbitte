@@ -17,20 +17,20 @@ merlinbitte directory:
 OSX
 ---
 
-For OSX 10.8, I included a custom makefile for libtcod 1.5.2: libtcod_makefile_osx. 
+For OSX 10.9, I included a custom makefile for libtcod 1.5.2: libtcod_makefile_osx. 
     
     brew install sdl
     
     cp ./merlinbitte/libtcod_makefile_osx ./libtcod/
     cd libtcod
 
-Now, comment out line 645 in src/sys_sdl_c.c, the one saying
+Now, comment out line 652 in src/sys_sdl_c.c, the one saying
     
-    CustomApplicationMain();
+        CustomSDLMain();
 
 So it says
 
-    //CustomApplicationMain();
+        //CustomSDLMain();
 
 Then, compile libtcod:
 
